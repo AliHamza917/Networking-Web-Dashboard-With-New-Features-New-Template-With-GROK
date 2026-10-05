@@ -1,0 +1,1797 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Ali Hamza Cisco Networking Dashboard</title>
+  <script src="https://cdn.tailwindcss.com"></script>
+  <script src="https://unpkg.com/vis-network@9.1.9/standalone/umd/vis-network.min.js"></script>
+  <link rel="preconnect" href="https://fonts.googleapis.com" />
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+  <link href="https://fonts.googleapis.com/css2?family=Figtree:wght@400;500;600;700&family=JetBrains+Mono:wght@400;500&display=swap" rel="stylesheet" />
+  <style>
+    :root {
+      --bg:#0a1519; --panel:#12252b; --panel-2:#0d1c21; --line:#23404a; --line-2:#2f5460;
+      --text:#e6f0f2; --muted:#8ba3ab; --cyan:#22c7e6; --cyan-d:#0b7f9c;
+      --ok:#34d399; --trunk:#38bdf8; --warn:#f5a524; --off:#4b626a; --bad:#f87171;
+      --ui:'Figtree',system-ui,-apple-system,'Segoe UI',Roboto,sans-serif;
+      --mono:'JetBrains Mono',ui-monospace,SFMono-Regular,Consolas,monospace;
+      color-scheme: dark;
+    }
+    /* body-prefixed selectors beat Tailwind's single-class utilities */
+    body { font-family:var(--ui); color:var(--text); background-color:var(--bg);
+      background-image:
+        radial-gradient(900px 420px at 8% -8%, rgba(34,199,230,.13), transparent 60%),
+        linear-gradient(rgba(139,163,171,.045) 1px, transparent 1px),
+        linear-gradient(90deg, rgba(139,163,171,.045) 1px, transparent 1px);
+      background-size:auto, 34px 34px, 34px 34px; background-attachment:fixed; }
+    body h1, body h2, body h3 { letter-spacing:-.01em; }
+    body h2 { font-weight:650; }
+
+    /* header */
+    body header { background:rgba(10,21,25,.82); border-bottom:1px solid var(--line); }
+    body #conn-status { padding:.35rem .8rem; border:1px solid var(--line); border-radius:999px; background:var(--panel-2); font-size:.8rem; }
+
+    /* panels */
+    body .card { background:linear-gradient(180deg,var(--panel),#0f2126); border:1px solid var(--line);
+      border-radius:14px; box-shadow:0 1px 0 rgba(255,255,255,.04) inset, 0 12px 28px -18px rgba(0,0,0,.7); }
+    body .card h2 { display:flex; align-items:center; gap:.5rem; }
+
+    /* fields */
+    body .input { background:var(--bg); border:1px solid var(--line-2); color:var(--text); border-radius:9px; transition:border-color .15s, box-shadow .15s; }
+    body .input::placeholder { color:#5d777f; }
+    body .input:focus { border-color:var(--cyan); box-shadow:0 0 0 3px rgba(34,199,230,.18); outline:none; }
+    body label { font-weight:500; letter-spacing:.01em; }
+
+    /* buttons */
+    body .btn-primary { background:linear-gradient(180deg,#12a2c4,var(--cyan-d)); border:1px solid #1bb7da55; border-radius:10px;
+      box-shadow:0 6px 16px -8px rgba(34,199,230,.7); transition:transform .12s, filter .15s; }
+    body .btn-primary:hover { background:linear-gradient(180deg,#19b3d6,#0d8fb0); filter:brightness(1.06); }
+    body .btn-success { background:linear-gradient(180deg,#14b98a,#0b8f6a); border-radius:10px; }
+    body .btn-danger { background:linear-gradient(180deg,#f0605f,#d13d3d); border-radius:10px; }
+    body button:active { transform:translateY(1px); }
+    body button.text-left { border:1px solid var(--line); border-radius:10px; transition:border-color .15s, background-color .15s; }
+    body button.text-left:hover { border-color:var(--line-2); }
+    body button.text-left.bg-slate-800 { background:var(--panel-2); }
+    body button.text-left.bg-slate-800:hover { background:#152b32; }
+
+    /* categorized side navigation */
+    body .sidenav { max-height:calc(100vh - 7rem); overflow-y:auto; }
+    body .navgroup + .navgroup, body #nav-setup + .navgroup, body .navgroup + #nav-setup, body #nav-setup + details { margin-top:.35rem; }
+    body .navgroup summary { list-style:none; cursor:pointer; display:flex; align-items:center; padding:.6rem .6rem .35rem;
+      font-size:.68rem; font-weight:650; letter-spacing:.13em; text-transform:uppercase; color:var(--muted); user-select:none; }
+    body .navgroup summary::-webkit-details-marker { display:none; }
+    body .navgroup summary::after { content:"›"; margin-left:auto; font-size:1rem; transition:transform .15s; }
+    body .navgroup[open] > summary::after { transform:rotate(90deg); }
+    body .navgroup summary:hover { color:var(--text); }
+    body .navitem { display:flex; align-items:center; gap:.7rem; width:100%; text-align:left; padding:.5rem .65rem; margin:1px 0;
+      font-size:.875rem; font-weight:500; color:#b8ccd2; background:transparent; border:0; border-left:2px solid transparent;
+      border-radius:9px; transition:background-color .15s, color .15s; }
+    body .navitem:hover { background:rgba(255,255,255,.05); color:var(--text); }
+    body .navitem.tab-active { color:var(--text); font-weight:600; border-left-color:var(--cyan);
+      background:linear-gradient(90deg, rgba(34,199,230,.2), rgba(34,199,230,.03)); }
+    body .navico { width:1.25rem; flex:none; text-align:center; color:var(--cyan); font-size:.95rem; }
+    body .navitem.action { font-family:var(--mono); font-size:.78rem; }
+    body .navitem.action .navico { color:var(--muted); }
+
+    /* permissions + nested nav */
+    .perm-hidden { display:none !important; }
+    body .navsub { margin:.1rem 0 .25rem .8rem; padding-left:.4rem; border-left:1px solid var(--line); }
+    body .navsub > summary { text-transform:none; letter-spacing:0; font-size:.8rem; font-weight:600; color:#a9c0c7; padding:.4rem .5rem; }
+    body .navsub .navitem { padding:.4rem .6rem; font-size:.82rem; }
+    body .userchip { display:flex; align-items:center; gap:.6rem; margin-left:auto; padding:.3rem .4rem .3rem .8rem; border:1px solid var(--line); border-radius:999px; background:var(--panel-2); font-size:.8rem; }
+    body .userchip em { font-style:normal; font-size:.65rem; text-transform:uppercase; letter-spacing:.08em; padding:.1rem .45rem; border-radius:999px; background:rgba(34,199,230,.15); color:var(--cyan); }
+    body .userchip button { padding:.25rem .7rem; border-radius:999px; background:#1a323a; color:var(--text); font-size:.75rem; }
+    body .userchip button:hover { background:#24444e; }
+    /* segmented views, chips, template cards, protocol badges */
+    body .seg { display:inline-flex; gap:2px; padding:3px; border:1px solid var(--line); border-radius:11px; background:var(--panel-2); }
+    body .seg button { padding:.4rem .9rem; border-radius:8px; font-size:.82rem; color:var(--muted); font-weight:500; }
+    body .seg button.on { background:linear-gradient(180deg,#5fdcf3,var(--cyan)); color:#06232b; font-weight:650; }
+    body .chip { padding:.25rem .7rem; border-radius:999px; font-size:.75rem; border:1px solid var(--line-2); background:var(--panel-2); color:#b8ccd2; }
+    body .chip:hover, body .chip.on { border-color:var(--cyan); color:var(--text); background:rgba(34,199,230,.12); }
+    body .tplcard { background:var(--panel-2); border:1px solid var(--line); border-radius:12px; padding:.9rem; }
+    body .tplcard h3 { font-weight:650; font-size:.95rem; }
+    body .tplcard .input { margin-top:.2rem; padding:.35rem .55rem; font-size:.8rem; }
+    body .pcode { display:inline-block; min-width:2.2rem; text-align:center; padding:.1rem .4rem; border-radius:6px; font:600 .72rem var(--mono); }
+    .p-connected,.p-local { background:rgba(52,211,153,.15); color:#34d399; } .p-static { background:rgba(245,165,36,.15); color:#f5a524; }
+    .p-ospf { background:rgba(56,189,248,.15); color:#38bdf8; } .p-eigrp { background:rgba(167,139,250,.16); color:#a78bfa; }
+    .p-bgp,.p-rip,.p-isis,.p-other { background:rgba(248,113,113,.15); color:#f87171; }
+    body .tabcode { color:var(--muted); }
+    /* switch-template gallery */
+    body .tplcard { border-left:3px solid var(--cat, var(--line-2)); }
+    body .swtile { text-align:left; padding:1rem; border-radius:14px; border:1px solid var(--line); background:linear-gradient(180deg,#112228,#0c1a1f); transition:transform .15s, border-color .15s, box-shadow .15s; }
+    body .swtile:hover { transform:translateY(-2px); border-color:var(--line-2); }
+    body .swtile.on { border-color:var(--cyan); box-shadow:0 0 0 1px var(--cyan), 0 14px 30px -18px var(--cyan); }
+    .swglyph { width:2.6rem; height:2.6rem; display:grid; place-items:center; font-size:1.4rem; border-radius:12px; color:#06232b; background:linear-gradient(135deg,#5fdcf3,#22c7e6); }
+    .mini-ports { display:flex; gap:3px; margin:.85rem 0 .6rem; }
+    .mini-ports i { width:12px; height:14px; border:1px solid var(--line-2); border-bottom:2px solid #34d399; border-radius:3px 3px 2px 2px; background:#0a1519; }
+    .mini-ports i:nth-child(4n) { border-bottom-color:#38bdf8; } .mini-ports i:nth-child(7n) { border-bottom-color:#4b626a; }
+    .codeprev { margin:0; padding:.8rem 0; max-height:420px; overflow:auto; background:#060e11; border:1px solid var(--line); border-radius:10px; font:12px/1.65 var(--mono); counter-reset:ln; }
+    .codeprev span { display:block; padding:0 .9rem 0 3rem; position:relative; white-space:pre-wrap; color:#9fe7c6; }
+    .codeprev span::before { counter-increment:ln; content:counter(ln); position:absolute; left:0; width:2.2rem; text-align:right; color:#4b626a; }
+    .codeprev span.top { color:#e6f0f2; font-weight:600; }
+    /* port map: each port is a small switch jack with an LED */
+    .port-tile { --c:var(--off); position:relative; display:flex; flex-direction:column; align-items:center; justify-content:center;
+      min-height:72px; padding:16px 4px 9px; background:linear-gradient(180deg,#0a1519,#10242a);
+      border:1px solid var(--line); border-bottom:3px solid var(--c); border-radius:9px 9px 5px 5px; cursor:pointer;
+      transition:border-color .15s, transform .12s, box-shadow .15s; }
+    .port-tile::before { content:""; position:absolute; top:0; left:50%; width:22px; height:7px; transform:translateX(-50%);
+      background:var(--bg); border:1px solid var(--line-2); border-top:0; border-radius:0 0 4px 4px; }   /* the RJ45 notch */
+    .port-tile::after { content:""; position:absolute; top:7px; right:7px; width:7px; height:7px; border-radius:50%;
+      background:var(--c); box-shadow:0 0 0 1px rgba(0,0,0,.4), 0 0 9px var(--c); }                       /* the LED */
+    .port-tile:hover { transform:translateY(-2px); border-color:var(--c); box-shadow:0 8px 18px -10px var(--c); }
+    .port-tile[data-state="up"]    { --c:var(--ok); }
+    .port-tile[data-state="trunk"] { --c:var(--trunk); background:linear-gradient(180deg,#0a1a22,#0f2b38); }
+    .port-tile[data-state="error"] { --c:var(--warn); }
+    .port-tile[data-state="down"]::after, .port-tile[data-state="unknown"]::after { box-shadow:none; opacity:.55; }
+    .port-name  { font-size:11px; font-weight:650; line-height:1.1; color:var(--text); }
+    .port-meta  { font-size:10px; margin-top:2px; font-weight:600; color:var(--c); font-family:var(--mono); }
+    .port-speed { font-size:9px; color:var(--muted); max-width:100%; overflow:hidden; text-overflow:ellipsis; white-space:nowrap; }
+    .port-tile[data-state="down"] .port-name { color:var(--muted); }
+
+    /* output = terminal */
+    pre { white-space:pre-wrap; word-break:break-all; max-height:420px; overflow-y:auto; }
+    body pre#output { font-family:var(--mono); font-size:12.5px; line-height:1.6; color:#86e8c0; background:#060e11;
+      border:1px solid var(--line); border-left:3px solid var(--cyan); border-radius:10px; }
+    body pre#output.text-red-400 { color:var(--bad); border-left-color:var(--bad); }
+
+    /* topology canvas + tables */
+    #topology-canvas { height:480px; background:radial-gradient(circle at 50% 40%, #10262d, var(--bg)); border-radius:12px; border:1px solid var(--line); }
+    body table th { font-weight:600; color:var(--muted); }
+    body footer { border-color:var(--line); }
+
+    /* scrollbars */
+    * { scrollbar-width:thin; scrollbar-color:var(--line-2) transparent; }
+
+    /* quality floor: keyboard focus, motion, small screens */
+    body :focus-visible { outline:2px solid var(--cyan); outline-offset:2px; }
+    @media (prefers-reduced-motion: reduce) { * { transition:none !important; animation:none !important; } }
+  </style>
+</head>
+<body class="min-h-screen">
+  <!-- Header -->
+  <header class="border-b border-slate-700 bg-slate-900/80 backdrop-blur sticky top-0 z-50">
+    <div class="max-w-7xl mx-auto px-4 py-4 flex items-center justify-between">
+      <div class="flex items-center gap-3">
+        <div class="w-11 h-11 rounded-xl bg-gradient-to-br from-sky-500 to-violet-600 flex items-center justify-center font-bold text-white text-sm shadow-lg ring-2 ring-sky-400/30">AH</div>
+        <div>
+          <h1 class="text-xl font-bold tracking-tight">Ali Hamza Cisco Networking Dashboard</h1>
+          <p class="text-xs text-slate-400">by <span class="text-sky-400 font-semibold">Ali Hamza</span> · IOS / IOS-XE · SSH</p>
+        </div>
+      </div>
+      <div class="flex items-center gap-4">
+        <div id="monitor-badge" class="hidden text-xs px-2 py-1 rounded-full bg-emerald-900/50 text-emerald-300 border border-emerald-700">● Monitor ON</div>
+        <div id="conn-status" class="text-sm text-slate-400">Not connected</div>
+      </div>
+    </div>
+  </header>
+
+  <main class="max-w-[88rem] mx-auto px-4 py-8 grid grid-cols-1 lg:grid-cols-[330px_minmax(0,1fr)] gap-6">
+
+    <!-- LEFT: Connection -->
+    <section class="lg:col-span-1 space-y-6">
+      <div class="card rounded-xl p-5">
+        <h2 class="text-lg font-semibold mb-4 flex items-center gap-2">
+          <span class="w-2 h-2 rounded-full bg-sky-400"></span> Device Connection
+        </h2>
+        <div class="space-y-3">
+          <div>
+            <label class="text-xs text-slate-400">Connection type</label>
+            <select id="connection-type" onchange="toggleConnType()" class="input w-full mt-1 rounded-lg px-3 py-2 text-sm">
+              <option value="ssh">SSH (network)</option>
+              <option value="console">Console cable (serial COM)</option>
+            </select>
+          </div>
+          <div id="ssh-fields">
+            <label class="text-xs text-slate-400">Switch IP / Hostname</label>
+            <input id="host" type="text" placeholder="192.168.1.10" class="input w-full mt-1 rounded-lg px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-sky-500" />
+          </div>
+          <div id="console-fields" class="hidden space-y-2">
+            <div>
+              <label class="text-xs text-slate-400">Serial port (COM)</label>
+              <div class="flex gap-2 mt-1">
+                <input id="serial-port" type="text" placeholder="COM3" class="input flex-1 rounded-lg px-3 py-2 text-sm" />
+                <button type="button" onclick="refreshSerialPorts()" class="text-xs bg-slate-700 hover:bg-slate-600 px-2 rounded-lg">Detect</button>
+              </div>
+              <select id="serial-port-select" onchange="document.getElementById('serial-port').value=this.value" class="input w-full mt-1 rounded-lg px-2 py-1 text-xs hidden"></select>
+            </div>
+            <div>
+              <label class="text-xs text-slate-400">Baud rate</label>
+              <select id="baudrate" class="input w-full mt-1 rounded-lg px-3 py-2 text-sm">
+                <option value="9600" selected>9600 (default)</option>
+                <option value="115200">115200</option>
+                <option value="38400">38400</option>
+              </select>
+            </div>
+            <p class="text-[10px] text-slate-500">USB-console adapter required. Driver must be installed. Close Putty/Termius on that COM first.</p>
+          </div>
+          <div class="grid grid-cols-2 gap-3">
+            <div>
+              <label class="text-xs text-slate-400">Username</label>
+              <input id="username" type="text" placeholder="admin" class="input w-full mt-1 rounded-lg px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-sky-500" />
+            </div>
+            <div id="ssh-port-wrap">
+              <label class="text-xs text-slate-400">SSH Port</label>
+              <input id="port" type="number" value="22" class="input w-full mt-1 rounded-lg px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-sky-500" />
+            </div>
+          </div>
+          <div>
+            <label class="text-xs text-slate-400">Password</label>
+            <input id="password" type="password" class="input w-full mt-1 rounded-lg px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-sky-500" />
+          </div>
+          <div>
+            <label class="text-xs text-slate-400">Enable Secret (optional)</label>
+            <input id="secret" type="password" class="input w-full mt-1 rounded-lg px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-sky-500" />
+          </div>
+          <button onclick="testConnection()" class="btn-primary w-full py-2.5 rounded-lg font-medium text-sm text-white transition">
+            Test Connection
+          </button>
+          <div id="conn-result" class="text-sm hidden"></div>
+        </div>
+      </div>
+
+      <!-- Categorized navigation -->
+      <nav class="card sidenav rounded-xl p-3 lg:sticky lg:top-20" aria-label="Main navigation">
+        <details class="navgroup" open><summary>Monitor</summary><button onclick="showTab('ports')" id="tab-ports" class="navitem tab-active" data-perm="view"><span class="navico" aria-hidden="true">▦</span>Port Map</button><button onclick="showTab('topology')" id="tab-topology" class="navitem" data-perm="view"><span class="navico" aria-hidden="true">⌬</span>Topology</button><button onclick="showTab('monitor')" id="tab-monitor" class="navitem" data-perm="diagnostics"><span class="navico" aria-hidden="true">◉</span>Switch Monitor</button></details>
+        <details class="navgroup" open><summary>Switching</summary><details class="navgroup navsub" open><summary>VLAN</summary><button onclick="showTab('vlan')" id="tab-vlan" class="navitem" data-perm="config"><span class="navico" aria-hidden="true">⧉</span>VLAN Manager</button><button onclick="showTab('interface')" id="tab-interface" class="navitem" data-perm="config"><span class="navico" aria-hidden="true">⇄</span>Port & VLAN Assignment</button><button onclick="runShow('show vlan brief')" class="navitem action" data-perm="view"><span class="navico" aria-hidden="true">></span>show vlan brief</button><button onclick="runShow('show interfaces trunk')" class="navitem action" data-perm="view"><span class="navico" aria-hidden="true">></span>show interfaces trunk</button><button onclick="runShow('show interfaces switchport')" class="navitem action" data-perm="view"><span class="navico" aria-hidden="true">></span>show interfaces switchport</button><button onclick="runShow('show vtp status')" class="navitem action" data-perm="view"><span class="navico" aria-hidden="true">></span>show vtp status</button></details><details class="navgroup navsub"><summary>Layer 2</summary><button onclick="runShow('show spanning-tree')" class="navitem action" data-perm="view"><span class="navico" aria-hidden="true">></span>show spanning-tree</button><button onclick="runShow('show mac address-table')" class="navitem action" data-perm="view"><span class="navico" aria-hidden="true">></span>show mac address-table</button><button onclick="runShow('show etherchannel summary')" class="navitem action" data-perm="view"><span class="navico" aria-hidden="true">></span>show etherchannel summary</button><button onclick="runShow('show cdp neighbors')" class="navitem action" data-perm="view"><span class="navico" aria-hidden="true">></span>show cdp neighbors</button></details><details class="navgroup navsub"><summary>Interfaces</summary><button onclick="runShow('show interfaces status')" class="navitem action" data-perm="view"><span class="navico" aria-hidden="true">></span>show interfaces status</button><button onclick="runShow('show ip interface brief')" class="navitem action" data-perm="view"><span class="navico" aria-hidden="true">></span>show ip interface brief</button><button onclick="runShow('show interfaces counters errors')" class="navitem action" data-perm="view"><span class="navico" aria-hidden="true">></span>show interfaces counters errors</button></details></details>
+        <details class="navgroup" open><summary>Routing</summary><button onclick="showTab('routing')" id="tab-routing" class="navitem" data-perm="view"><span class="navico" aria-hidden="true">⇉</span>Route Table & Manager</button><button onclick="showTab('traceroute')" id="tab-traceroute" class="navitem" data-perm="diagnostics"><span class="navico" aria-hidden="true">↗</span>Track Route</button><details class="navgroup navsub"><summary>Routing commands</summary><button onclick="runShow('show ip route')" class="navitem action" data-perm="view"><span class="navico" aria-hidden="true">></span>show ip route</button><button onclick="runShow('show ip protocols')" class="navitem action" data-perm="view"><span class="navico" aria-hidden="true">></span>show ip protocols</button><button onclick="runShow('show ip ospf neighbor')" class="navitem action" data-perm="view"><span class="navico" aria-hidden="true">></span>show ip ospf neighbor</button><button onclick="runShow('show ip eigrp neighbors')" class="navitem action" data-perm="view"><span class="navico" aria-hidden="true">></span>show ip eigrp neighbors</button><button onclick="runShow('show ip arp')" class="navitem action" data-perm="view"><span class="navico" aria-hidden="true">></span>show ip arp</button></details></details>
+        <details class="navgroup" open><summary>Tools</summary><button onclick="showTab('config')" id="tab-config" class="navitem" data-perm="config"><span class="navico" aria-hidden="true">⌨</span>Config Push</button><button onclick="showTab('templates')" id="tab-templates" class="navitem" data-perm="view"><span class="navico" aria-hidden="true">▤</span>Templates</button><button onclick="showTab('scanner')" id="tab-scanner" class="navitem" data-perm="diagnostics"><span class="navico" aria-hidden="true">⌕</span>IP Scanner</button><button onclick="backupConfig()" class="navitem action" data-perm="backup"><span class="navico" aria-hidden="true">⬇</span>Backup running-config</button></details>
+        <details class="navgroup"><summary>System</summary><button onclick="showTab('reboot')" id="tab-reboot" class="navitem" data-perm="reboot"><span class="navico" aria-hidden="true">⟳</span>Reboot Switch</button><button onclick="runShow('show version')" class="navitem action" data-perm="view"><span class="navico" aria-hidden="true">></span>show version</button><button onclick="runShow('show running-config')" class="navitem action" data-perm="view"><span class="navico" aria-hidden="true">></span>show running-config</button><button onclick="runShow('show logging')" class="navitem action" data-perm="view"><span class="navico" aria-hidden="true">></span>show logging</button><button onclick="runShow('show inventory')" class="navitem action" data-perm="view"><span class="navico" aria-hidden="true">></span>show inventory</button></details>
+        <div id="nav-setup" class="hidden"><details class="navgroup" open><summary>Setup · console only</summary><button onclick="showTab('sshsetup')" id="tab-sshsetup" class="navitem" data-perm="ssh_setup"><span class="navico" aria-hidden="true">⚿</span>Enable SSH</button><button onclick="showTab('recovery')" id="tab-recovery" class="navitem" data-perm="bootloader"><span class="navico" aria-hidden="true">⛑</span>Bootloader &amp; Recovery</button></details></div>
+        <details class="navgroup" open><summary>Admin</summary><button onclick="showTab('users')" id="tab-users" class="navitem" data-perm="users"><span class="navico" aria-hidden="true">☺</span>Users & Permissions</button></details>
+        <details class="navgroup" open><summary>Help</summary><button onclick="showTab('manual')" id="tab-manual" class="navitem"><span class="navico" aria-hidden="true">?</span>Manual</button></details>
+      </nav>
+    </section>
+
+    <!-- RIGHT: Main panels -->
+    <section class="lg:col-span-1 min-w-0 space-y-6">
+      <!-- Tabs -->
+
+      <!-- Port Map Panel -->
+      <div id="panel-ports" class="card rounded-xl p-5">
+        <div class="flex flex-wrap items-center justify-between gap-3 mb-4">
+          <div>
+            <h2 class="text-lg font-semibold">Graphical Port Map</h2>
+            <p class="text-xs text-slate-400 mt-0.5">Click a port to see its MAC / IP hosts. Trunk ports glow blue.</p>
+          </div>
+          <button onclick="loadPortMap()" class="btn-primary px-4 py-2 rounded-lg text-sm font-medium text-white flex items-center gap-2">
+            <span>↻</span> Refresh Ports
+          </button>
+        </div>
+
+        <!-- Legend -->
+        <div class="flex flex-wrap gap-4 text-xs mb-4 text-slate-300">
+          <span class="flex items-center gap-1.5"><span class="w-3 h-3 rounded bg-emerald-500"></span> Access Up</span>
+          <span class="flex items-center gap-1.5"><span class="w-3 h-3 rounded bg-sky-500 ring-2 ring-sky-300"></span> Trunk (any state)</span>
+          <span class="flex items-center gap-1.5"><span class="w-3 h-3 rounded bg-slate-600"></span> Access Down</span>
+          <span class="flex items-center gap-1.5"><span class="w-3 h-3 rounded bg-amber-500"></span> Error-disabled</span>
+        </div>
+
+        <div id="port-map-status" class="text-sm text-slate-400 mb-3">Enter credentials and click Refresh Ports</div>
+        <div id="port-grid" class="grid grid-cols-4 sm:grid-cols-6 md:grid-cols-8 lg:grid-cols-10 gap-2"></div>
+
+        <!-- MAC / IP detail for selected port -->
+        <div id="port-detail-box" class="mt-4 hidden border border-slate-600 rounded-lg p-4 bg-slate-900/60">
+          <div class="flex justify-between items-center mb-2">
+            <h3 class="font-semibold text-sm" id="port-detail-title">Port hosts</h3>
+            <div class="flex gap-2">
+              <button onclick="selectPort(document.getElementById('port-detail-iface').value)" class="text-xs bg-slate-700 hover:bg-slate-600 px-2 py-1 rounded">Configure</button>
+              <button onclick="document.getElementById('port-detail-box').classList.add('hidden')" class="text-xs text-slate-400 hover:text-white">Close</button>
+            </div>
+          </div>
+          <input type="hidden" id="port-detail-iface" />
+          <div id="port-detail-body" class="text-xs font-mono text-slate-300 overflow-x-auto"></div>
+        </div>
+      </div>
+
+      <!-- Traceroute Panel -->
+      <div id="panel-traceroute" class="card rounded-xl p-5 hidden">
+        <h2 class="text-lg font-semibold mb-2">Track Route (Traceroute)</h2>
+        <p class="text-xs text-slate-400 mb-4">Traceroute from the switch · visual hop map + full text</p>
+        <div class="flex flex-wrap gap-3 items-end">
+          <div class="flex-1 min-w-[200px]">
+            <label class="text-xs text-slate-400">Destination IP / Hostname</label>
+            <input id="trace-target" type="text" placeholder="8.8.8.8 or server.local" class="input w-full mt-1 rounded-lg px-3 py-2 text-sm" />
+          </div>
+          <button onclick="runTraceroute()" class="btn-primary px-5 py-2 rounded-lg text-sm font-medium text-white">
+            Run Traceroute
+          </button>
+        </div>
+        <p class="text-xs text-slate-500 mt-3 mb-3">May take 1–2 min · <span class="text-sky-400">Blue</span> start · <span class="text-emerald-400">Green</span> hop · <span class="text-slate-400">Gray</span> timeout · <span class="text-violet-400">Violet</span> destination</p>
+        <div id="trace-map-status" class="text-sm text-slate-400 mb-2"></div>
+        <div id="trace-hop-map" class="flex flex-wrap items-stretch gap-0 min-h-[90px] p-3 rounded-lg bg-slate-950 border border-slate-700 overflow-x-auto"></div>
+      </div>
+
+      <!-- Monitor Panel – continuous multi-switch ping -->
+      <div id="panel-monitor" class="card rounded-xl p-5 hidden">
+        <h2 class="text-lg font-semibold mb-1">Switch Monitor</h2>
+        <p class="text-xs text-slate-400 mb-4">Continuous ping · saved IPs · alerts when a switch goes down</p>
+        <div class="flex flex-wrap gap-2 mb-3">
+          <input id="monitor-ip" type="text" placeholder="192.168.4.7" class="input rounded-lg px-3 py-2 text-sm flex-1 min-w-[140px]" />
+          <input id="monitor-name" type="text" placeholder="Name (optional)" class="input rounded-lg px-3 py-2 text-sm w-40" />
+          <button onclick="addMonitorHost()" class="btn-primary px-4 py-2 rounded-lg text-sm text-white">Add</button>
+          <button onclick="toggleMonitor()" id="btn-monitor-toggle" class="bg-emerald-700 hover:bg-emerald-600 px-4 py-2 rounded-lg text-sm text-white">Start Monitor</button>
+        </div>
+        <div class="flex flex-wrap gap-3 text-xs text-slate-400 mb-3">
+          <label class="flex items-center gap-1">Interval
+            <select id="monitor-interval" class="input rounded px-2 py-1 text-xs">
+              <option value="5">5s</option>
+              <option value="10" selected>10s</option>
+              <option value="30">30s</option>
+              <option value="60">60s</option>
+            </select>
+          </label>
+          <label class="flex items-center gap-2">
+            <input type="checkbox" id="monitor-alerts" checked class="rounded" /> Browser alerts on disconnect
+          </label>
+        </div>
+        <div id="monitor-list" class="space-y-2"></div>
+        <p class="text-xs text-slate-500 mt-3">IPs are stored in this browser (localStorage) for next time.</p>
+      </div>
+
+      <!-- IP Scanner Panel -->
+      <div id="panel-scanner" class="card rounded-xl p-5 hidden">
+        <h2 class="text-lg font-semibold mb-1">IP Scanner</h2>
+        <p class="text-xs text-slate-400 mb-4">Ping-scan a subnet or range from this PC (e.g. 192.168.4.0/24 or 192.168.4.1-50)</p>
+        <div class="flex flex-wrap gap-2 mb-3">
+          <input id="scan-subnet" type="text" placeholder="192.168.4.0/24" class="input rounded-lg px-3 py-2 text-sm flex-1 min-w-[180px]" />
+          <button onclick="runIpScan()" class="btn-primary px-4 py-2 rounded-lg text-sm text-white">Scan</button>
+        </div>
+        <div id="scan-status" class="text-sm text-slate-400 mb-2"></div>
+        <div id="scan-results" class="max-h-80 overflow-y-auto text-xs font-mono"></div>
+      </div>
+
+      <!-- Topology Panel -->
+      <div id="panel-topology" class="card rounded-xl p-5 hidden">
+        <div class="flex flex-wrap items-center justify-between gap-3 mb-4">
+          <div>
+            <h2 class="text-lg font-semibold">Network Topology</h2>
+            <p class="text-xs text-slate-400 mt-0.5">CDP / LLDP neighbors · drag nodes · scroll to zoom</p>
+          </div>
+          <button onclick="loadTopology()" class="btn-primary px-4 py-2 rounded-lg text-sm font-medium text-white flex items-center gap-2">
+            <span>↻</span> Discover Topology
+          </button>
+        </div>
+        <div class="flex flex-wrap gap-4 text-xs mb-3 text-slate-300">
+          <span class="flex items-center gap-1.5"><span class="w-3 h-3 rounded-full bg-sky-500"></span> Local switch</span>
+          <span class="flex items-center gap-1.5"><span class="w-3 h-3 rounded-full bg-emerald-500"></span> Switch</span>
+          <span class="flex items-center gap-1.5"><span class="w-3 h-3 rounded-full bg-violet-500"></span> Router</span>
+          <span class="flex items-center gap-1.5"><span class="w-3 h-3 rounded-full bg-amber-500"></span> Phone / Host</span>
+          <span class="flex items-center gap-1.5"><span class="w-3 h-3 rounded-full bg-slate-500"></span> Other</span>
+        </div>
+        <div id="topology-status" class="text-sm text-slate-400 mb-2">Enter credentials and click Discover Topology</div>
+        <div id="topology-canvas"></div>
+        <div id="topology-detail" class="mt-3 text-xs text-slate-400 font-mono hidden"></div>
+      </div>
+
+      <!-- Config Push Panel -->
+      <div id="panel-config" class="card rounded-xl p-5 hidden">
+        <h2 class="text-lg font-semibold mb-3">Free-form Configuration</h2>
+        <p class="text-sm text-slate-400 mb-3">Paste Cisco CLI commands (one per line). They will be sent in config mode.</p>
+        <textarea id="config-commands" rows="10" class="input w-full rounded-lg p-3 text-sm font-mono focus:outline-none focus:ring-2 focus:ring-sky-500" placeholder="vlan 10&#10;name DATA&#10;interface Gi1/0/1&#10;switchport mode access&#10;switchport access vlan 10&#10;no shutdown"></textarea>
+        <div class="flex items-center gap-3 mt-4 flex-wrap">
+          <label class="flex items-center gap-2 text-sm">
+            <input type="checkbox" id="save-config" checked class="rounded" />
+            Write memory after push
+          </label>
+          <button onclick="pushConfig()" class="btn-success ml-auto px-5 py-2 rounded-lg text-sm font-medium text-white">
+            Push Config
+          </button>
+        </div>
+        <hr class="border-slate-700 my-5" />
+        <h3 class="font-semibold mb-2">Upload backup / restore config</h3>
+        <p class="text-xs text-slate-400 mb-2">Upload a previously downloaded <code>.cfg</code> file and apply it to the connected switch.</p>
+        <input id="restore-file" type="file" accept=".cfg,.txt,.conf,text/plain" class="text-xs text-slate-300 mb-2" />
+        <button onclick="restoreBackup()" class="bg-amber-700 hover:bg-amber-600 px-4 py-2 rounded-lg text-sm text-white">Upload &amp; Apply Backup</button>
+      </div>
+
+      <!-- VLAN Panel -->
+      <div id="panel-vlan" class="card rounded-xl p-5 hidden">
+        <h2 class="text-lg font-semibold mb-4">Create / Update VLAN</h2>
+        <div class="grid grid-cols-2 gap-4">
+          <div>
+            <label class="text-xs text-slate-400">VLAN ID</label>
+            <input id="vlan-id" type="number" min="1" max="4094" placeholder="10" class="input w-full mt-1 rounded-lg px-3 py-2 text-sm" />
+          </div>
+          <div>
+            <label class="text-xs text-slate-400">VLAN Name (optional)</label>
+            <input id="vlan-name" type="text" placeholder="DATA" class="input w-full mt-1 rounded-lg px-3 py-2 text-sm" />
+          </div>
+        </div>
+        <button onclick="createVlan()" class="btn-primary mt-4 px-5 py-2 rounded-lg text-sm font-medium text-white">
+          Create VLAN
+        </button>
+      </div>
+
+      <!-- Interface Panel -->
+      <div id="panel-interface" class="card rounded-xl p-5 hidden">
+        <h2 class="text-lg font-semibold mb-4">Configure Interface</h2>
+        <div class="grid grid-cols-2 gap-4">
+          <div>
+            <label class="text-xs text-slate-400">Interface</label>
+            <input id="iface-name" type="text" placeholder="GigabitEthernet1/0/1" class="input w-full mt-1 rounded-lg px-3 py-2 text-sm" />
+          </div>
+          <div>
+            <label class="text-xs text-slate-400">Mode</label>
+            <select id="iface-mode" class="input w-full mt-1 rounded-lg px-3 py-2 text-sm">
+              <option value="access">Access</option>
+              <option value="trunk">Trunk</option>
+            </select>
+          </div>
+          <div>
+            <label class="text-xs text-slate-400">VLAN / Native VLAN</label>
+            <input id="iface-vlan" type="number" placeholder="10" class="input w-full mt-1 rounded-lg px-3 py-2 text-sm" />
+          </div>
+          <div>
+            <label class="text-xs text-slate-400">Description</label>
+            <input id="iface-desc" type="text" placeholder="User Port" class="input w-full mt-1 rounded-lg px-3 py-2 text-sm" />
+          </div>
+        </div>
+        <div class="mt-3">
+          <label class="flex items-center gap-2 text-sm">
+            <input type="checkbox" id="iface-shutdown" class="rounded" />
+            Shutdown interface
+          </label>
+        </div>
+        <button onclick="configInterface()" class="btn-primary mt-4 px-5 py-2 rounded-lg text-sm font-medium text-white">
+          Apply Interface Config
+        </button>
+      </div>
+
+      <!-- SSH Setup Panel (console only) -->
+      <div id="panel-sshsetup" class="card rounded-xl p-5 hidden">
+        <h2 class="text-lg font-semibold">Enable SSH over the console cable</h2>
+        <p class="text-xs text-slate-400 mt-0.5 mb-4">Sets up a domain, a login user, RSA keys and SSH-only VTY lines, so you can manage this switch from the network. Nothing is sent until you press Apply.</p>
+        <div class="grid grid-cols-1 sm:grid-cols-2 gap-3">
+          <div><label class="text-xs text-slate-400">Hostname (optional)</label><input id="ssh-hostname" placeholder="CORE-SW1" class="input w-full mt-1 rounded-lg px-3 py-2 text-sm" /></div>
+          <div><label class="text-xs text-slate-400">Domain name *</label><input id="ssh-domain" placeholder="lab.local" class="input w-full mt-1 rounded-lg px-3 py-2 text-sm" /></div>
+          <div><label class="text-xs text-slate-400">SSH username *</label><input id="ssh-user" placeholder="admin" class="input w-full mt-1 rounded-lg px-3 py-2 text-sm" /></div>
+          <div><label class="text-xs text-slate-400">SSH password * (4+ chars, no spaces or ?)</label><input id="ssh-pass" type="password" autocomplete="new-password" class="input w-full mt-1 rounded-lg px-3 py-2 text-sm" /></div>
+          <div><label class="text-xs text-slate-400">Set enable secret (optional)</label><input id="ssh-enable" type="password" autocomplete="new-password" class="input w-full mt-1 rounded-lg px-3 py-2 text-sm" /></div>
+          <div><label class="text-xs text-slate-400">RSA key size</label>
+            <select id="ssh-bits" class="input w-full mt-1 rounded-lg px-3 py-2 text-sm"><option>1024</option><option selected>2048</option><option>4096</option></select></div>
+        </div>
+        <details class="mt-4">
+          <summary class="text-sm text-sky-300 cursor-pointer">Management IP (needed if the switch has no IP yet)</summary>
+          <div class="grid grid-cols-1 sm:grid-cols-2 gap-3 mt-3">
+            <div><label class="text-xs text-slate-400">Interface</label><input id="ssh-mgmt-if" placeholder="Vlan1" class="input w-full mt-1 rounded-lg px-3 py-2 text-sm" /></div>
+            <div><label class="text-xs text-slate-400">IP address</label><input id="ssh-mgmt-ip" placeholder="192.168.1.2" class="input w-full mt-1 rounded-lg px-3 py-2 text-sm" /></div>
+            <div><label class="text-xs text-slate-400">Subnet mask</label><input id="ssh-mgmt-mask" placeholder="255.255.255.0" class="input w-full mt-1 rounded-lg px-3 py-2 text-sm" /></div>
+            <div><label class="text-xs text-slate-400">Default gateway</label><input id="ssh-gw" placeholder="192.168.1.1" class="input w-full mt-1 rounded-lg px-3 py-2 text-sm" /></div>
+          </div>
+        </details>
+        <div class="flex flex-wrap items-center gap-3 mt-5">
+          <label class="flex items-center gap-2 text-sm text-slate-300"><input id="ssh-save" type="checkbox" checked /> Save to startup-config</label>
+          <button onclick="previewSshSetup()" class="ml-auto bg-slate-700 hover:bg-slate-600 px-4 py-2 rounded-lg text-sm text-white">Preview commands</button>
+          <button onclick="applySshSetup()" class="btn-success px-5 py-2 rounded-lg text-sm font-medium text-white">Apply to switch</button>
+        </div>
+        <pre id="ssh-preview" class="hidden mt-4 bg-slate-950 rounded-lg p-4 text-xs font-mono text-sky-300"></pre>
+        <p class="text-xs text-slate-500 mt-3">Key generation can take up to a minute on older switches. Keep the console connected until it finishes.</p>
+      </div>
+
+      <!-- Routing Panel -->
+      <div id="panel-routing" class="card rounded-xl p-5 hidden">
+        <div class="flex flex-wrap items-center justify-between gap-3 mb-4">
+          <div><h2 class="text-lg font-semibold">Routing</h2>
+            <p class="text-xs text-slate-400 mt-0.5">Read the route table, see it as a map, run routing commands and manage routes.</p></div>
+          <div class="flex gap-2">
+            <button onclick="showTab('traceroute')" class="bg-slate-700 hover:bg-slate-600 px-4 py-2 rounded-lg text-sm text-white">↗ Track Route</button>
+            <button onclick="loadRoutes()" class="btn-primary px-4 py-2 rounded-lg text-sm font-medium text-white">↻ Load routes</button>
+          </div>
+        </div>
+        <div class="seg mb-4" id="rt-seg">
+          <button class="on" onclick="rtView('table')">Table</button><button onclick="rtView('map')">Map</button>
+          <button onclick="rtView('term')">Terminal</button><button onclick="rtView('manage')">Manage</button>
+        </div>
+        <div id="rt-summary" class="flex flex-wrap gap-2 mb-3 text-xs"></div>
+        <div id="rt-v-table">
+          <div class="overflow-x-auto"><table class="w-full text-sm">
+            <thead><tr class="text-left text-xs"><th class="py-2 pr-3">Code</th><th class="pr-3">Prefix</th><th class="pr-3">Next hop</th><th class="pr-3">Interface</th><th>AD / metric</th></tr></thead>
+            <tbody id="rt-body"><tr><td colspan="5" class="py-6 text-slate-500">Press “Load routes” to read the routing table from the switch.</td></tr></tbody>
+          </table></div>
+        </div>
+        <div id="rt-v-map" class="hidden">
+          <div id="rt-map" style="height:440px;border:1px solid var(--line);border-radius:12px;background:radial-gradient(circle at 50% 40%,#10262d,var(--bg))"></div>
+          <p class="text-xs text-slate-500 mt-2">The switch sits in the centre. Each next hop is a node sized by how many routes use it; connected networks hang off the switch.</p>
+        </div>
+        <div id="rt-v-term" class="hidden">
+          <div class="flex flex-wrap gap-2 mb-2">
+            <button class="chip" onclick="rtRun('show ip route')">show ip route</button><button class="chip" onclick="rtRun('show ip protocols')">show ip protocols</button>
+            <button class="chip" onclick="rtRun('show ip ospf neighbor')">ospf neighbor</button><button class="chip" onclick="rtRun('show ip eigrp neighbors')">eigrp neighbors</button>
+            <button class="chip" onclick="rtRun('show ip arp')">show ip arp</button>
+          </div>
+          <div class="flex gap-2"><input id="rt-cmd" onkeydown="rtKey(event)" placeholder="show ip route 10.1.1.0" class="input w-full mt-1 rounded-lg px-3 py-2 text-sm" style="font-family:var(--mono)" />
+            <button onclick="rtRun()" class="btn-primary px-4 rounded-lg text-sm text-white mt-1">Run</button></div>
+          <pre id="rt-term" class="mt-3 rounded-lg p-4 text-xs font-mono" style="background:#060e11;border:1px solid var(--line);color:#86e8c0;min-height:180px">Read-only: routing “show” commands only (↑ recalls history).</pre>
+        </div>
+        <div id="rt-v-manage" class="hidden">
+          <label class="text-xs text-slate-400">What do you want to change?</label>
+          <select id="rm-type" onchange="rmType()" class="input w-full mt-1 rounded-lg px-3 py-2 text-sm"><option value="static">Static route</option><option value="default">Default route</option><option value="ospf">OSPF network</option><option value="routing">IP routing on/off</option></select>
+          <div class="grid grid-cols-2 gap-3 mt-3">
+            <div data-rm="static"><label class="text-xs text-slate-400">Network</label><input id="rm-net" placeholder="10.1.1.0" class="input w-full mt-1 rounded-lg px-3 py-2 text-sm" /></div>
+            <div data-rm="static"><label class="text-xs text-slate-400">Mask</label><input id="rm-mask" placeholder="255.255.255.0" class="input w-full mt-1 rounded-lg px-3 py-2 text-sm" /></div>
+            <div data-rm="static default"><label class="text-xs text-slate-400">Next hop</label><input id="rm-nh" placeholder="192.168.1.1" class="input w-full mt-1 rounded-lg px-3 py-2 text-sm" /></div>
+            <div data-rm="static"><label class="text-xs text-slate-400">Distance (optional)</label><input id="rm-ad" placeholder="200" class="input w-full mt-1 rounded-lg px-3 py-2 text-sm" /></div>
+            <div data-rm="ospf"><label class="text-xs text-slate-400">Process ID</label><input id="rm-pid" value="1" class="input w-full mt-1 rounded-lg px-3 py-2 text-sm" /></div>
+            <div data-rm="ospf"><label class="text-xs text-slate-400">Router ID (optional)</label><input id="rm-rid" placeholder="1.1.1.1" class="input w-full mt-1 rounded-lg px-3 py-2 text-sm" /></div>
+            <div data-rm="ospf"><label class="text-xs text-slate-400">Network</label><input id="rm-onet" placeholder="192.168.10.0" class="input w-full mt-1 rounded-lg px-3 py-2 text-sm" /></div>
+            <div data-rm="ospf"><label class="text-xs text-slate-400">Wildcard</label><input id="rm-wc" placeholder="0.0.0.255" class="input w-full mt-1 rounded-lg px-3 py-2 text-sm" /></div>
+            <div data-rm="ospf"><label class="text-xs text-slate-400">Area</label><input id="rm-area" value="0" class="input w-full mt-1 rounded-lg px-3 py-2 text-sm" /></div>
+          </div>
+          <div class="flex flex-wrap items-center gap-3 mt-4">
+            <label class="flex items-center gap-2 text-sm text-slate-300"><input id="rm-remove" type="checkbox" /> Remove instead of add</label>
+            <button onclick="rmPreview()" class="ml-auto bg-slate-700 hover:bg-slate-600 px-4 py-2 rounded-lg text-sm text-white">Preview</button>
+            <button data-perm="config" onclick="rmApply()" class="btn-success px-5 py-2 rounded-lg text-sm font-medium text-white">Apply &amp; save</button>
+          </div>
+          <pre id="rm-preview" class="hidden mt-3 rounded-lg p-3 text-xs font-mono text-sky-300" style="background:#060e11;border:1px solid var(--line)"></pre>
+        </div>
+      </div>
+
+      <!-- Users Panel -->
+      <div id="panel-users" class="card rounded-xl p-5 hidden">
+        <h2 class="text-lg font-semibold">Users &amp; Permissions</h2>
+        <p class="text-xs text-slate-400 mt-0.5 mb-4">Admins can do everything. Users get only the permissions ticked below; changes apply immediately, even to signed-in sessions.</p>
+        <div class="overflow-x-auto mb-5"><table class="w-full text-sm"><thead><tr class="text-left text-xs"><th class="py-2 pr-3">User</th><th class="pr-3">Role</th><th class="pr-3">Permissions</th><th></th></tr></thead><tbody id="users-body"></tbody></table></div>
+        <h3 class="font-semibold text-sm mb-2" id="u-title">Add a user</h3>
+        <div class="grid grid-cols-1 sm:grid-cols-3 gap-3">
+          <div><label class="text-xs text-slate-400">Username</label><input id="u-name" autocomplete="off" class="input w-full mt-1 rounded-lg px-3 py-2 text-sm" /></div>
+          <div><label class="text-xs text-slate-400">Password <span id="u-pw-hint">(8+ chars)</span></label><input id="u-pass" type="password" autocomplete="new-password" class="input w-full mt-1 rounded-lg px-3 py-2 text-sm" /></div>
+          <div><label class="text-xs text-slate-400">Role</label><select id="u-role" onchange="uRole()" class="input w-full mt-1 rounded-lg px-3 py-2 text-sm"><option value="user">User</option><option value="admin">Admin</option></select></div>
+        </div>
+        <div id="u-perms" class="grid grid-cols-1 sm:grid-cols-2 gap-2 mt-3"></div>
+        <div class="flex items-center gap-3 mt-4">
+          <label class="flex items-center gap-2 text-sm text-slate-300"><input id="u-disabled" type="checkbox" /> Disabled</label>
+          <button onclick="uClear()" class="ml-auto bg-slate-700 hover:bg-slate-600 px-4 py-2 rounded-lg text-sm text-white">Clear</button>
+          <button onclick="uSave()" class="btn-primary px-5 py-2 rounded-lg text-sm font-medium text-white">Save user</button>
+        </div>
+      </div>
+
+      <!-- Reboot Panel -->
+      <div id="panel-reboot" class="card rounded-xl p-5 hidden">
+        <h2 class="text-lg font-semibold">Reboot switch</h2>
+        <p class="text-xs text-slate-400 mt-0.5 mb-4">The switch will be unreachable for several minutes. Two separate confirmations are required, and the server checks both.</p>
+        <div class="grid grid-cols-1 sm:grid-cols-2 gap-3">
+          <label class="flex items-center gap-2 text-sm text-slate-300"><input id="rb-save" type="checkbox" checked /> Save running-config first</label>
+          <div><label class="text-xs text-slate-400">Reload in (minutes, 0 = now)</label><input id="rb-delay" type="number" min="0" max="720" value="0" class="input w-full mt-1 rounded-lg px-3 py-2 text-sm" /></div>
+        </div>
+        <div class="flex flex-wrap gap-3 mt-4">
+          <button onclick="rbRequest()" class="btn-danger px-5 py-2 rounded-lg text-sm font-medium text-white">Step 1 · Request reboot</button>
+          <button onclick="rbCancel()" class="bg-slate-700 hover:bg-slate-600 px-4 py-2 rounded-lg text-sm text-white">Cancel a scheduled reload</button>
+        </div>
+        <div id="rb-step2" class="hidden mt-5 rounded-xl p-4" style="border:1px solid #7f2d2d;background:rgba(127,45,45,.15)">
+          <p class="text-sm"><b>Step 2 of 2 · Confirm.</b> You are about to reboot <b id="rb-name" class="text-red-300"></b>. This request expires in <b id="rb-count">60</b>s.</p>
+          <label class="text-xs text-slate-400 block mt-3">Type the switch name exactly to confirm</label>
+          <input id="rb-text" oninput="rbCheck()" autocomplete="off" class="input w-full mt-1 rounded-lg px-3 py-2 text-sm" />
+          <div class="flex gap-3 mt-3"><button id="rb-go" disabled onclick="rbConfirm()" class="btn-danger px-5 py-2 rounded-lg text-sm font-medium text-white disabled:opacity-40">Reboot now</button>
+            <button onclick="rbReset()" class="bg-slate-700 hover:bg-slate-600 px-4 py-2 rounded-lg text-sm text-white">Cancel</button></div>
+        </div>
+      </div>
+
+      <!-- Bootloader & Recovery Panel -->
+      <div id="panel-recovery" class="card rounded-xl p-5 hidden">
+        <h2 class="text-lg font-semibold">Bootloader &amp; password recovery</h2>
+        <p class="text-xs text-slate-400 mt-0.5 mb-3">For a switch that was reset physically and is sitting at the <code>switch:</code> prompt. Needs a Console connection (9600 baud) and the serial port filled in.</p>
+        <ol class="text-xs text-slate-400 list-decimal pl-5 mb-4 space-y-1">
+          <li>Unplug power, hold the <b>MODE</b> button, plug power back in, release MODE when the first LED turns solid (or you see <code>switch:</code>).</li>
+          <li>Press <b>Detect mode</b> to confirm the bootloader is answering.</li>
+          <li>Use <b>Read info</b> to see the boot image and config file, then <b>Boot</b>, or run <b>password recovery</b> below.</li>
+        </ol>
+        <div class="flex flex-wrap items-center gap-3 mb-4">
+          <button onclick="blRun('detect')" class="btn-primary px-4 py-2 rounded-lg text-sm text-white">Detect mode</button>
+          <button onclick="blRun('info')" class="bg-slate-700 hover:bg-slate-600 px-4 py-2 rounded-lg text-sm text-white">Read info</button>
+          <span id="bl-mode" class="chip">mode: unknown</span>
+        </div>
+        <div class="grid grid-cols-1 lg:grid-cols-2 gap-3">
+          <div class="tplcard"><h3>Boot</h3><p class="text-xs text-slate-400 mt-0.5">Start IOS normally, or pick a specific image found by “Read info”.</p>
+            <select id="bl-images" class="input w-full mt-1 rounded-lg px-3 py-2 text-sm"><option value="">(default boot)</option></select>
+            <button onclick="blRun('boot', { image: document.getElementById('bl-images').value || null })" class="btn-success mt-3 px-4 py-2 rounded-lg text-sm text-white">Boot now</button></div>
+          <div class="tplcard" style="--cat:#f87171"><h3>Password recovery</h3><p class="text-xs text-slate-400 mt-0.5">Renames the startup config, boots with a blank config, then “Finish recovery” restores it so you can set new passwords.</p>
+            <input id="bl-confirm" placeholder="Type RECOVER to enable" autocomplete="off" class="input w-full mt-1 rounded-lg px-3 py-2 text-sm" />
+            <div class="flex gap-2 mt-3"><button onclick="blRecover()" class="btn-danger px-4 py-2 rounded-lg text-sm text-white">1 · Start recovery</button>
+              <button onclick="blRun('finish')" class="bg-slate-700 hover:bg-slate-600 px-4 py-2 rounded-lg text-sm text-white">2 · Finish recovery</button></div></div>
+        </div>
+        <pre id="bl-out" class="mt-4 rounded-lg p-4 text-xs font-mono" style="background:#060e11;border:1px solid var(--line);color:#86e8c0;min-height:120px">Nothing run yet.</pre>
+      </div>
+
+      <!-- Templates Panel -->
+      <div id="panel-templates" class="card rounded-xl p-5 hidden">
+        <div class="flex flex-wrap items-center justify-between gap-3 mb-4">
+          <div><h2 class="text-lg font-semibold">Templates</h2>
+            <p class="text-xs text-slate-400 mt-0.5">Fill in the blanks and send to Config Push. Nothing is applied until you push.</p></div>
+          <div class="seg" id="tpl-seg"><button class="on" onclick="tplView('sw')">Switch templates</button><button onclick="tplView('snip')">Command snippets</button></div>
+        </div>
+        <div id="tpl-v-sw">
+          <div id="sw-tiles" class="grid grid-cols-1 sm:grid-cols-2 xl:grid-cols-3 gap-3"></div>
+          <div id="sw-detail" class="mt-4 hidden"></div>
+        </div>
+        <div id="tpl-v-snip" class="hidden">
+          <input id="tpl-search" oninput="renderTpl()" placeholder="Search snippets…" class="input rounded-lg px-3 py-2 text-sm w-full sm:w-64 mb-3" />
+          <div id="tpl-cats" class="flex flex-wrap gap-2 mb-4"></div>
+          <div id="templates-list" class="grid grid-cols-1 xl:grid-cols-2 gap-3"></div>
+        </div>
+      </div>
+
+      <!-- User Manual -->
+      <div id="panel-manual" class="card rounded-xl p-5 hidden">
+        <h2 class="text-lg font-semibold mb-3">End-user usage manual</h2>
+        <div class="text-sm text-slate-300 space-y-3 max-h-[480px] overflow-y-auto leading-relaxed">
+          <p><strong class="text-sky-400">Ali Hamza Cisco Networking Dashboard</strong> helps you manage Cisco IOS / IOS-XE switches from a browser.</p>
+          <h3 class="text-white font-semibold">1. Connect</h3>
+          <ul class="list-disc pl-5 space-y-1 text-slate-400">
+            <li><b>SSH</b>: enter switch IP, username, password (enable secret if needed), port 22 → Test Connection.</li>
+            <li><b>Console cable</b>: choose Console, select COM port (Detect), baud 9600, same user/pass → Test Connection. Close Putty on that COM first.</li>
+          </ul>
+          <h3 class="text-white font-semibold">2. Port Map</h3>
+          <p class="text-slate-400">Refresh Ports. Green = access up, blue = trunk, gray = down. Click a port to see MAC and IP of connected hosts.</p>
+          <h3 class="text-white font-semibold">3. Topology / Track Route</h3>
+          <p class="text-slate-400">Topology uses CDP/LLDP. Track Route runs traceroute from the switch and shows a visual hop map.</p>
+          <h3 class="text-white font-semibold">4. Monitor &amp; IP Scanner</h3>
+          <p class="text-slate-400">Monitor continuously pings saved switch IPs and alerts if one goes down. Scanner finds live hosts; <b>device type is a guess</b> (PC / mobile / network) based on TTL — not 100% accurate, and a switch may look like a PC if TTL is rewritten.</p>
+          <h3 class="text-white font-semibold">5. Config / Backup / Restore</h3>
+          <ul class="list-disc pl-5 space-y-1 text-slate-400">
+            <li>Config Push: paste CLI lines and apply.</li>
+            <li>Backup: download running-config.</li>
+            <li>Upload &amp; Apply Backup: restore from a .cfg file (review carefully before production).</li>
+          </ul>
+          <h3 class="text-white font-semibold">6. Safety</h3>
+          <p class="text-slate-400">Lab / trusted networks only. Always review commands. © Ali Hamza · alihamza51326@gmail.com</p>
+        </div>
+      </div>
+
+      <!-- Output -->
+      <div class="card rounded-xl p-5">
+        <div class="flex items-center justify-between mb-3">
+          <h2 class="text-lg font-semibold">Output</h2>
+          <button onclick="document.getElementById('output').textContent=''" class="text-xs text-slate-400 hover:text-white">Clear</button>
+        </div>
+        <pre id="output" class="bg-slate-950 rounded-lg p-4 text-xs font-mono text-green-400 min-h-[120px]">Ready. Enter device credentials and start working.</pre>
+      </div>
+    </section>
+  </main>
+
+  <footer class="border-t border-slate-800 mt-8 py-6 text-center text-xs text-slate-500 space-y-1">
+    <p><span class="text-sky-400 font-semibold">Ali Hamza</span> · Ali Hamza Cisco Networking Dashboard</p>
+    <p>© 2026 Ali Hamza · <a href="mailto:alihamza51326@gmail.com" class="text-sky-400 hover:underline">alihamza51326@gmail.com</a>. All rights reserved.</p>
+    <p class="text-slate-600 max-w-xl mx-auto">This software and its design are proprietary to Ali Hamza. Unauthorized copying, redistribution, or commercial use of this application without written permission is prohibited. Always review CLI before pushing to production switches.</p>
+  </footer>
+
+  <script>
+    // any 401 (expired session) sends the user to the login page
+    const _fetch = window.fetch.bind(window);
+    window.fetch = async (...a) => { const r = await _fetch(...a); if (r.status === 401 && !String(a[0]).includes('/api/auth/login')) location.href = '/login'; return r; };
+    const esc = s => String(s ?? '').replace(/[&<>"']/g, c => ({ '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;', "'": '&#39;' }[c]));
+
+    // ---------- Helpers ----------
+    function getCreds() {
+      const ctype = document.getElementById('connection-type').value;
+      const serial = document.getElementById('serial-port').value.trim();
+      const hostIp = document.getElementById('host').value.trim();
+      return {
+        host: ctype === 'console' ? (serial || hostIp) : hostIp,
+        username: document.getElementById('username').value.trim(),
+        password: document.getElementById('password').value,
+        secret: document.getElementById('secret').value || null,
+        port: parseInt(document.getElementById('port').value) || 22,
+        connection_type: ctype,
+        serial_port: serial || null,
+        baudrate: parseInt(document.getElementById('baudrate').value) || 9600
+      };
+    }
+
+    function requireCreds() {
+      const c = getCreds();
+      if (c.connection_type === 'console') {
+        if (!c.serial_port) { alert('Enter serial port e.g. COM3'); return null; }
+      } else {
+        if (!c.host) { alert('Enter switch IP'); return null; }
+      }
+      if (!c.username || !c.password) {
+        alert('Please fill Username and Password.');
+        return null;
+      }
+      return c;
+    }
+
+    function toggleConnType() {
+      const c = document.getElementById('connection-type').value;
+      document.getElementById('ssh-fields').classList.toggle('hidden', c === 'console');
+      document.getElementById('console-fields').classList.toggle('hidden', c !== 'console');
+      document.getElementById('ssh-port-wrap').classList.toggle('hidden', c === 'console');
+      // SSH setup only makes sense over the console cable
+      document.getElementById('nav-setup').classList.toggle('hidden', c !== 'console');
+      if (c !== 'console' && !document.getElementById('panel-sshsetup').classList.contains('hidden')) showTab('ports');
+    }
+
+    async function refreshSerialPorts() {
+      try {
+        const res = await fetch('/api/serial-ports');
+        const data = await res.json();
+        const sel = document.getElementById('serial-port-select');
+        if (!data.ports || !data.ports.length) {
+          sel.classList.add('hidden');
+          setOutput('No serial ports detected. Type COM3 manually (Device Manager → Ports).');
+          return;
+        }
+        sel.innerHTML = data.ports.map(p => `<option value="${p.device}">${p.device} — ${p.description}</option>`).join('');
+        sel.classList.remove('hidden');
+        document.getElementById('serial-port').value = data.ports[0].device;
+        setOutput('Serial ports: ' + data.ports.map(p => p.device).join(', '));
+      } catch (e) {
+        setOutput('Serial detect error: ' + e.message, true);
+      }
+    }
+
+    function setOutput(text, isError = false) {
+      const el = document.getElementById('output');
+      el.textContent = text;
+      el.className = `bg-slate-950 rounded-lg p-4 text-xs font-mono min-h-[120px] ${isError ? 'text-red-400' : 'text-green-400'}`;
+    }
+
+    function showTab(name) {
+      ['ports', 'topology', 'traceroute', 'monitor', 'scanner', 'config', 'vlan', 'interface', 'sshsetup', 'routing', 'users', 'reboot', 'recovery', 'templates', 'manual'].forEach(t => {
+        document.getElementById(`panel-${t}`).classList.add('hidden');
+        document.getElementById(`tab-${t}`).classList.remove('tab-active');
+      });
+      document.getElementById(`panel-${name}`).classList.remove('hidden');
+      document.getElementById(`tab-${name}`).classList.add('tab-active');
+      // on phones the nav sits above the content – bring the panel into view
+      if (window.innerWidth < 1024) document.getElementById(`panel-${name}`).scrollIntoView({ block: 'start' });
+    }
+
+    // ---------- API calls ----------
+    async function testConnection() {
+      if (await blProbe()) return;
+      const creds = requireCreds();
+      if (!creds) return;
+      setOutput('Connecting...');
+      try {
+        const res = await fetch('/api/test-connection', {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify(creds)
+        });
+        const data = await res.json();
+        if (data.success) {
+          document.getElementById('conn-status').innerHTML = `<span class="text-emerald-400">● Connected · ${data.hostname}</span>`;
+          setOutput(`Connected successfully!\nHostname: ${data.hostname}\nPrompt: ${data.prompt}\n\n${data.version_snippet}`);
+        } else {
+          document.getElementById('conn-status').textContent = 'Connection failed';
+          setOutput(data.error, true);
+        }
+      } catch (e) {
+        setOutput('Network error: ' + e.message, true);
+      }
+    }
+
+    async function runShow(cmd) {
+      const creds = requireCreds();
+      if (!creds) return;
+      setOutput(`Running: ${cmd} ...`);
+      try {
+        const res = await fetch('/api/show', {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({ ...creds, command: cmd })
+        });
+        const data = await res.json();
+        setOutput(data.success ? data.output : data.error, !data.success);
+      } catch (e) {
+        setOutput('Error: ' + e.message, true);
+      }
+    }
+
+    async function pushConfig() {
+      const creds = requireCreds();
+      if (!creds) return;
+      const raw = document.getElementById('config-commands').value;
+      const commands = raw.split('\n').map(l => l.trim()).filter(Boolean);
+      if (!commands.length) {
+        alert('No commands entered');
+        return;
+      }
+      if (!confirm(`Push ${commands.length} command(s) to ${creds.host}?`)) return;
+
+      setOutput('Pushing configuration...');
+      try {
+        const res = await fetch('/api/config', {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({
+            ...creds,
+            config_commands: commands,
+            save: document.getElementById('save-config').checked
+          })
+        });
+        const data = await res.json();
+        setOutput(data.success ? data.output : data.error, !data.success);
+      } catch (e) {
+        setOutput('Error: ' + e.message, true);
+      }
+    }
+
+    async function createVlan() {
+      const creds = requireCreds();
+      if (!creds) return;
+      const vlan_id = parseInt(document.getElementById('vlan-id').value);
+      if (!vlan_id) { alert('Enter VLAN ID'); return; }
+      const vlan_name = document.getElementById('vlan-name').value || null;
+
+      setOutput(`Creating VLAN ${vlan_id}...`);
+      try {
+        const res = await fetch('/api/vlan', {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({ ...creds, vlan_id, vlan_name })
+        });
+        const data = await res.json();
+        setOutput(data.success ? data.output : data.error, !data.success);
+      } catch (e) {
+        setOutput('Error: ' + e.message, true);
+      }
+    }
+
+    async function configInterface() {
+      const creds = requireCreds();
+      if (!creds) return;
+      const interfaceName = document.getElementById('iface-name').value.trim();
+      if (!interfaceName) { alert('Enter interface name'); return; }
+
+      setOutput(`Configuring ${interfaceName}...`);
+      try {
+        const res = await fetch('/api/interface', {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({
+            ...creds,
+            interface: interfaceName,
+            mode: document.getElementById('iface-mode').value,
+            vlan: parseInt(document.getElementById('iface-vlan').value) || null,
+            description: document.getElementById('iface-desc').value || null,
+            shutdown: document.getElementById('iface-shutdown').checked
+          })
+        });
+        const data = await res.json();
+        setOutput(data.success ? data.output : data.error, !data.success);
+      } catch (e) {
+        setOutput('Error: ' + e.message, true);
+      }
+    }
+
+    async function backupConfig() {
+      const creds = requireCreds();
+      if (!creds) return;
+      setOutput('Downloading running-config...');
+      try {
+        const res = await fetch('/api/backup', {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify(creds)
+        });
+        if (!res.ok) {
+          const data = await res.json();
+          setOutput(data.error || 'Backup failed', true);
+          return;
+        }
+        const blob = await res.blob();
+        const url = window.URL.createObjectURL(blob);
+        const a = document.createElement('a');
+        a.href = url;
+        const cd = res.headers.get('content-disposition') || '';
+        const fm = cd.match(/filename="?([^";]+)"?/i);
+        a.download = fm ? fm[1] : 'running-config.cfg';
+        a.click();
+        setTimeout(() => window.URL.revokeObjectURL(url), 1000);
+        setOutput('Backup downloaded successfully.');
+      } catch (e) {
+        setOutput('Error: ' + e.message, true);
+      }
+    }
+
+    async function restoreBackup() {
+      const creds = requireCreds();
+      if (!creds) return;
+      const fileInput = document.getElementById('restore-file');
+      if (!fileInput.files || !fileInput.files[0]) {
+        alert('Choose a .cfg backup file first');
+        return;
+      }
+      if (!confirm('Apply this backup config to the switch? This can change production settings.')) return;
+      setOutput('Uploading and applying backup...');
+      const fd = new FormData();
+      fd.append('file', fileInput.files[0]);
+      fd.append('host', creds.host || '');
+      fd.append('username', creds.username || '');
+      fd.append('password', creds.password || '');
+      fd.append('secret', creds.secret || '');
+      fd.append('port', creds.port || 22);
+      fd.append('connection_type', creds.connection_type || 'ssh');
+      fd.append('serial_port', creds.serial_port || '');
+      fd.append('baudrate', creds.baudrate || 9600);
+      fd.append('save', document.getElementById('save-config').checked ? 'true' : 'false');
+      try {
+        const res = await fetch('/api/restore', { method: 'POST', body: fd });
+        const data = await res.json();
+        if (!data.success) {
+          setOutput(data.error || 'Restore failed', true);
+          return;
+        }
+        let head = `Backup applied (${data.lines_applied} lines).`;
+        if (data.warnings && data.warnings.length) {
+          head += `\n⚠ ${data.warnings.length} line(s) were rejected by the switch` +
+                  (data.save_skipped ? ' – config was NOT saved to startup-config (review, then save manually).' : '.') +
+                  '\n' + data.warnings.map(w => `  • ${w.message}` + (w.command ? `   (near: ${w.command})` : '')).join('\n');
+        } else if (data.saved) {
+          head += ' Saved to startup-config.';
+        }
+        setOutput(`${head}\n\n${data.output}`, !!(data.warnings && data.warnings.length));
+      } catch (e) {
+        setOutput('Restore error: ' + e.message, true);
+      }
+    }
+
+    // ---------- Port Map ----------
+    function portColor(p) {
+      // Trunk always highlighted in sky/blue (up or down)
+      if (p.mode === 'trunk') {
+        if (p.state === 'error') return 'bg-amber-500 border-amber-300 ring-2 ring-sky-400';
+        if (p.state === 'up') return 'bg-sky-500 border-sky-300 ring-2 ring-sky-200';
+        return 'bg-sky-900 border-sky-500 ring-2 ring-sky-600'; // trunk down still blue-ish
+      }
+      if (p.state === 'error') return 'bg-amber-500 border-amber-400';
+      if (p.state === 'up') return 'bg-emerald-600 border-emerald-400';
+      if (p.state === 'down') return 'bg-slate-700 border-slate-600';
+      return 'bg-slate-800 border-slate-600';
+    }
+
+    function shortPort(name) {
+      return name.replace(/^(GigabitEthernet|Gi|FastEthernet|Fa|TenGigabitEthernet|Te|Ethernet|Eth)/i, '');
+    }
+
+    async function loadPortMap() {
+      const creds = requireCreds();
+      if (!creds) return;
+      const statusEl = document.getElementById('port-map-status');
+      const grid = document.getElementById('port-grid');
+      statusEl.textContent = 'Fetching interface status...';
+      grid.innerHTML = '';
+      document.getElementById('port-detail-box').classList.add('hidden');
+      setOutput('Loading port map...');
+
+      try {
+        const res = await fetch('/api/ports', {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify(creds)
+        });
+        const data = await res.json();
+        if (!data.success) {
+          statusEl.textContent = data.error || 'Failed';
+          setOutput(data.error || 'Failed to load ports', true);
+          return;
+        }
+
+        const up = data.ports.filter(p => p.state === 'up').length;
+        const down = data.ports.filter(p => p.state === 'down').length;
+        const trunks = data.trunk_count || data.ports.filter(p => p.mode === 'trunk').length;
+        statusEl.innerHTML = `<span class="text-emerald-400">${data.hostname}</span> · ${data.count} ports · <span class="text-emerald-400">${up} up</span> · <span class="text-slate-400">${down} down</span> · <span class="text-sky-400">${trunks} trunk</span>`;
+
+        grid.innerHTML = data.ports.map(p => {
+          const state = p.mode === 'trunk' ? 'trunk' : (p.state || 'unknown');
+          const vlanLabel = p.mode === 'trunk' ? 'TRK' : (p.vlan || '—');
+          const title = `${p.port}\nMode: ${p.mode}\nStatus: ${p.status}\nVLAN: ${p.vlan}\n${p.name || ''}\nClick for MAC/IP`;
+          return `
+            <button onclick='showPortDetail(${JSON.stringify(p.port)})'
+                    title="${title.replace(/"/g, '&quot;')}" data-state="${state}" class="port-tile">
+              <span class="port-name">${shortPort(p.port)}</span>
+              <span class="port-meta">${vlanLabel}</span>
+              <span class="port-speed">${p.speed || ''}</span>
+            </button>
+          `;
+        }).join('');
+
+        setOutput(`Port map loaded: ${data.count} ports on ${data.hostname} (${trunks} trunk)`);
+      } catch (e) {
+        statusEl.textContent = 'Error loading ports';
+        setOutput('Error: ' + e.message, true);
+      }
+    }
+
+    async function showPortDetail(portName) {
+      const creds = requireCreds();
+      if (!creds) return;
+      const box = document.getElementById('port-detail-box');
+      const body = document.getElementById('port-detail-body');
+      document.getElementById('port-detail-title').textContent = `Hosts on ${portName}`;
+      document.getElementById('port-detail-iface').value = portName;
+      box.classList.remove('hidden');
+      body.innerHTML = '<span class="text-slate-400">Loading MAC / IP...</span>';
+      setOutput(`Fetching MAC/IP for ${portName}...`);
+
+      try {
+        const res = await fetch('/api/port-detail', {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({ ...creds, interface: portName })
+        });
+        const data = await res.json();
+        if (!data.success) {
+          body.innerHTML = `<span class="text-red-400">${data.error || 'Failed'}</span>`;
+          setOutput(data.error || 'Port detail failed', true);
+          return;
+        }
+        if (!data.hosts || data.hosts.length === 0) {
+          body.innerHTML = '<span class="text-slate-400">No MAC addresses learned on this port (empty, uplink-only, or MAC aging).</span>';
+          if (data.mac_table_raw) {
+            body.innerHTML += `<pre class="mt-2 text-[10px] text-slate-500 whitespace-pre-wrap">${data.mac_table_raw.slice(0, 1500)}</pre>`;
+          }
+          setOutput(`No hosts on ${portName}`);
+          return;
+        }
+        let html = `<table class="w-full text-left border-collapse"><thead><tr class="text-slate-400 border-b border-slate-700">
+          <th class="py-1 pr-3">VLAN</th><th class="py-1 pr-3">MAC</th><th class="py-1 pr-3">IP</th><th class="py-1">Type</th></tr></thead><tbody>`;
+        data.hosts.forEach(h => {
+          html += `<tr class="border-b border-slate-800"><td class="py-1 pr-3">${h.vlan}</td><td class="py-1 pr-3 text-emerald-300">${h.mac}</td><td class="py-1 pr-3 text-sky-300">${h.ip || '—'}</td><td class="py-1">${h.type}</td></tr>`;
+        });
+        html += '</tbody></table>';
+        body.innerHTML = html;
+        setOutput(`${data.host_count} host(s) on ${portName}`);
+      } catch (e) {
+        body.innerHTML = `<span class="text-red-400">${e.message}</span>`;
+        setOutput('Error: ' + e.message, true);
+      }
+    }
+
+    function selectPort(portName) {
+      document.getElementById('iface-name').value = portName;
+      showTab('interface');
+      setOutput(`Selected port ${portName} — adjust settings and click Apply Interface Config`);
+    }
+
+    function hopBoxClass(status) {
+      if (status === 'source') return 'bg-sky-600 border-sky-400';
+      if (status === 'destination') return 'bg-violet-600 border-violet-400';
+      if (status === 'timeout') return 'bg-slate-700 border-slate-500 opacity-80';
+      if (status === 'ok') return 'bg-emerald-700 border-emerald-400';
+      return 'bg-slate-600 border-slate-500';
+    }
+
+    function renderHopMap(hops, hostname, target) {
+      const map = document.getElementById('trace-hop-map');
+      const status = document.getElementById('trace-map-status');
+      if (!hops || !hops.length) {
+        map.innerHTML = '<span class="text-slate-500 text-sm">No hops parsed</span>';
+        return;
+      }
+      const mid = hops.filter(h => h.status !== 'source' && h.status !== 'destination').length;
+      status.innerHTML = `<span class="text-emerald-400">${hostname}</span> → <span class="text-violet-400">${target}</span> · ${mid} hop(s)`;
+
+      let html = '';
+      hops.forEach((h, i) => {
+        const avg = h.rtt_ms && h.rtt_ms.length
+          ? (h.rtt_ms.reduce((a, b) => a + b, 0) / h.rtt_ms.length).toFixed(1) + ' ms'
+          : (h.status === 'timeout' ? '* * *' : '—');
+        const hopLabel = h.status === 'source' ? 'SRC' : (h.status === 'destination' ? 'DST' : ('#' + h.hop));
+        html += `
+          <div class="flex items-center">
+            <div class="${hopBoxClass(h.status)} border rounded-lg px-3 py-2 min-w-[110px] text-center shadow">
+              <div class="text-[10px] uppercase tracking-wide opacity-80">${hopLabel}</div>
+              <div class="text-xs font-bold text-white truncate max-w-[140px]" title="${h.ip}">${h.label}</div>
+              <div class="text-[10px] mt-0.5 opacity-90">${avg}</div>
+            </div>
+            ${i < hops.length - 1 ? '<div class="text-slate-500 px-1 text-lg">→</div>' : ''}
+          </div>`;
+      });
+      map.innerHTML = html;
+    }
+
+    async function runTraceroute() {
+      const creds = requireCreds();
+      if (!creds) return;
+      const target = document.getElementById('trace-target').value.trim();
+      if (!target) { alert('Enter a destination IP or hostname'); return; }
+      const map = document.getElementById('trace-hop-map');
+      const status = document.getElementById('trace-map-status');
+      status.textContent = 'Running traceroute...';
+      map.innerHTML = '<span class="text-slate-500 text-sm animate-pulse">Tracing path…</span>';
+      setOutput(`Traceroute to ${target} from switch (please wait)...`);
+      try {
+        const res = await fetch('/api/traceroute', {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({ ...creds, target })
+        });
+        const data = await res.json();
+        if (!data.success) {
+          status.textContent = data.error || 'Failed';
+          map.innerHTML = '';
+          setOutput(data.error || 'Traceroute failed', true);
+          return;
+        }
+        renderHopMap(data.hops || [], data.hostname, data.target);
+        setOutput(`Traceroute from ${data.hostname} to ${data.target}:\n\n${data.output}`);
+      } catch (e) {
+        status.textContent = 'Error';
+        map.innerHTML = '';
+        setOutput('Error: ' + e.message, true);
+      }
+    }
+
+    // ---------- Topology ----------
+    let topologyNetwork = null;
+
+    function nodeColor(type) {
+      const map = {
+        local: '#0ea5e9',
+        switch: '#10b981',
+        router: '#8b5cf6',
+        phone: '#f59e0b',
+        host: '#f59e0b',
+        device: '#64748b'
+      };
+      return map[type] || '#64748b';
+    }
+
+    async function loadTopology() {
+      const creds = requireCreds();
+      if (!creds) return;
+      const statusEl = document.getElementById('topology-status');
+      const detailEl = document.getElementById('topology-detail');
+      statusEl.textContent = 'Discovering neighbors via CDP/LLDP...';
+      detailEl.classList.add('hidden');
+      setOutput('Discovering network topology...');
+
+      try {
+        const res = await fetch('/api/topology', {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify(creds)
+        });
+        const data = await res.json();
+        if (!data.success) {
+          statusEl.textContent = data.error || 'Failed';
+          setOutput(data.error || 'Topology discovery failed', true);
+          return;
+        }
+
+        statusEl.innerHTML = `<span class="text-emerald-400">${data.hostname}</span> · ${data.neighbor_count} neighbor(s) · ${data.nodes.length} nodes · ${data.edges.length} links`;
+
+        const nodes = new vis.DataSet(data.nodes.map(n => ({
+          id: n.id,
+          label: n.label + (n.ip ? `\n${n.ip}` : ''),
+          title: `${n.label}\nType: ${n.type}\nIP: ${n.ip || 'N/A'}\nPlatform: ${n.platform || 'N/A'}`,
+          color: {
+            background: nodeColor(n.type),
+            border: '#e2e8f0',
+            highlight: { background: nodeColor(n.type), border: '#fff' }
+          },
+          font: { color: '#fff', size: 12, face: 'Segoe UI, sans-serif' },
+          shape: n.type === 'local' ? 'box' : 'dot',
+          size: n.type === 'local' ? 28 : 22,
+          borderWidth: 2
+        })));
+
+        const edges = new vis.DataSet(data.edges.map((e, i) => ({
+          id: i,
+          from: e.from,
+          to: e.to,
+          label: e.label,
+          title: `${e.protocol.toUpperCase()}\nLocal: ${e.local_interface}\nRemote: ${e.neighbor_interface}`,
+          font: { color: '#94a3b8', size: 9, strokeWidth: 0, align: 'middle' },
+          color: { color: '#475569', highlight: '#0ea5e9' },
+          smooth: { type: 'continuous' },
+          width: 2
+        })));
+
+        const container = document.getElementById('topology-canvas');
+        if (topologyNetwork) {
+          topologyNetwork.destroy();
+        }
+        topologyNetwork = new vis.Network(container, { nodes, edges }, {
+          physics: {
+            enabled: true,
+            barnesHut: { gravitationalConstant: -4000, springLength: 160, springConstant: 0.04 }
+          },
+          interaction: { hover: true, tooltipDelay: 120, navigationButtons: true, keyboard: true },
+          layout: { improvedLayout: true }
+        });
+
+        topologyNetwork.on('click', params => {
+          if (params.nodes.length) {
+            const node = data.nodes.find(n => n.id === params.nodes[0]);
+            if (node) {
+              detailEl.classList.remove('hidden');
+              detailEl.textContent = `Selected: ${node.label}  |  Type: ${node.type}  |  IP: ${node.ip || 'N/A'}  |  Platform: ${node.platform || 'N/A'}`;
+            }
+          } else if (params.edges.length) {
+            const edge = data.edges[params.edges[0]];
+            if (edge) {
+              detailEl.classList.remove('hidden');
+              detailEl.textContent = `Link: ${edge.from} [${edge.local_interface}]  ↔  ${edge.to} [${edge.neighbor_interface}]  (${edge.protocol.toUpperCase()})`;
+            }
+          }
+        });
+
+        setOutput(`Topology loaded: ${data.neighbor_count} neighbor(s) from ${data.hostname}`);
+      } catch (e) {
+        statusEl.textContent = 'Error discovering topology';
+        setOutput('Error: ' + e.message, true);
+      }
+    }
+
+    // Load templates
+    // ---------- Switch Monitor (saved IPs + continuous ping + alerts) ----------
+    const MONITOR_KEY = 'ali_hamza_monitor_hosts';
+    let monitorTimer = null;
+    let monitorRunning = false;
+    let monitorBusy = false;   // stops ticks stacking up when pings take longer than the interval
+    let lastAlive = {};        // ip -> last observed state (undefined = not checked yet)
+    let monitorStatus = {};    // ip -> { status: 'up'|'down', rtt }  (runtime only, never saved)
+
+    function loadMonitorHosts() {
+      try { return JSON.parse(localStorage.getItem(MONITOR_KEY) || '[]'); }
+      catch { return []; }
+    }
+    function saveMonitorHosts(list) {
+      localStorage.setItem(MONITOR_KEY, JSON.stringify(list));
+    }
+
+    function renderMonitorList() {
+      const list = loadMonitorHosts();
+      const el = document.getElementById('monitor-list');
+      if (!list.length) {
+        el.innerHTML = '<p class="text-slate-500 text-sm">No switches saved yet. Add an IP above.</p>';
+        return;
+      }
+      el.innerHTML = list.map((h, i) => {
+        const s = monitorStatus[h.ip] || {};
+        const st = s.status || 'unknown';
+        const color = st === 'up' ? 'text-emerald-400' : (st === 'down' ? 'text-red-400' : 'text-slate-400');
+        const dot = st === 'up' ? 'bg-emerald-400' : (st === 'down' ? 'bg-red-500 animate-pulse' : 'bg-slate-500');
+        const rtt = s.rtt != null ? s.rtt + ' ms' : '—';
+        return `<div class="flex items-center justify-between bg-slate-800/80 rounded-lg px-3 py-2 border border-slate-700">
+          <div class="flex items-center gap-2 min-w-0">
+            <span class="w-2.5 h-2.5 rounded-full ${dot}"></span>
+            <div class="min-w-0">
+              <div class="text-sm font-medium truncate">${h.name || h.ip}</div>
+              <div class="text-[10px] text-slate-400">${h.ip} · <span class="${color}">${st.toUpperCase()}</span> · ${rtt}</div>
+            </div>
+          </div>
+          <div class="flex gap-2 shrink-0">
+            <button onclick="useMonitorHost('${h.ip}')" class="text-[10px] bg-slate-700 hover:bg-slate-600 px-2 py-1 rounded">Use</button>
+            <button onclick="removeMonitorHost(${i})" class="text-[10px] text-red-400 hover:text-red-300 px-2 py-1">✕</button>
+          </div>
+        </div>`;
+      }).join('');
+    }
+
+    function addMonitorHost() {
+      const ip = document.getElementById('monitor-ip').value.trim();
+      const name = document.getElementById('monitor-name').value.trim();
+      if (!ip) { alert('Enter an IP'); return; }
+      const list = loadMonitorHosts();
+      if (list.some(h => h.ip === ip)) { alert('Already saved'); return; }
+      list.push({ ip, name: name || ip });
+      saveMonitorHosts(list);
+      document.getElementById('monitor-ip').value = '';
+      document.getElementById('monitor-name').value = '';
+      renderMonitorList();
+    }
+
+    function removeMonitorHost(i) {
+      const list = loadMonitorHosts();
+      const [gone] = list.splice(i, 1);
+      if (gone) { delete monitorStatus[gone.ip]; delete lastAlive[gone.ip]; }
+      saveMonitorHosts(list);
+      renderMonitorList();
+    }
+
+    function useMonitorHost(ip) {
+      document.getElementById('host').value = ip;
+      setOutput('Loaded ' + ip + ' into connection form');
+    }
+
+    let PING_TIMEOUT_MS = 12000;   // a hung request must never freeze the monitor
+    async function pingOne(ip) {
+      const ctl = new AbortController(), timer = setTimeout(() => ctl.abort(), PING_TIMEOUT_MS);
+      try {
+        const res = await fetch('/api/ping', {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({ target: ip, count: 1 }),   // no reverse-DNS: keeps each tick fast
+          signal: ctl.signal
+        });
+        if (!res.ok) throw new Error('HTTP ' + res.status);
+        return await res.json();
+      } catch (e) {
+        // The dashboard server was unreachable or slow: says nothing about the switch.
+        return { alive: false, error: e.message, rtt_ms: null, serverError: true };
+      } finally { clearTimeout(timer); }
+    }
+
+    // The header badge must follow the CURRENT state: red while anything is down, green again once it recovers.
+    function updateMonitorBadge() {
+      const badge = document.getElementById('monitor-badge');
+      const down = loadMonitorHosts().filter(h => (monitorStatus[h.ip] || {}).status === 'down');
+      badge.classList.remove('hidden');
+      if (down.length) {
+        badge.textContent = '⚠ DOWN: ' + down.map(h => h.name || h.ip).join(', ');
+        badge.className = 'text-xs px-2 py-1 rounded-full bg-red-900/80 text-red-200 border border-red-600';
+      } else {
+        badge.textContent = '● Monitor ON · all up';
+        badge.className = 'text-xs px-2 py-1 rounded-full bg-emerald-900/50 text-emerald-300 border border-emerald-700';
+      }
+    }
+
+    function notifyDown(name, ip) {
+      if (!document.getElementById('monitor-alerts').checked) return;
+      const msg = `ALERT: ${name || ip} (${ip}) is DOWN`;
+      setOutput(msg, true);
+      if (window.Notification && Notification.permission === 'granted') {
+        new Notification('Ali Hamza · Switch Down', { body: msg });
+      } else if (window.Notification && Notification.permission !== 'denied') {
+        Notification.requestPermission().then(p => {
+          if (p === 'granted') new Notification('Ali Hamza · Switch Down', { body: msg });
+        });
+      }
+      // Visual flash on badge
+      const badge = document.getElementById('monitor-badge');
+      badge.classList.remove('hidden');
+      badge.textContent = '⚠ DOWN: ' + (name || ip);
+      badge.className = 'text-xs px-2 py-1 rounded-full bg-red-900/80 text-red-200 border border-red-600';
+    }
+
+    async function monitorTick() {
+      if (monitorBusy) return;           // previous round still running
+      monitorBusy = true;
+      try {
+        const list = loadMonitorHosts();
+        // Ping every switch IN PARALLEL (was one-by-one, so N dead hosts = N x timeout)
+        const results = await Promise.all(list.map(h => pingOne(h.ip)));
+        if (!monitorRunning) return;     // user pressed Stop while we were pinging
+        list.forEach((h, i) => {
+          const r = results[i];
+          if (r.serverError) return;     // don't mark switches down because OUR server hiccuped
+          const now = !!r.alive;
+          const was = lastAlive[h.ip];   // undefined on the very first check
+          monitorStatus[h.ip] = { status: now ? 'up' : 'down', rtt: r.rtt_ms };
+          // Alert on ANY switch that is down and wasn't already known-down.
+          // (Before: only up->down was caught, so a switch that was already
+          //  dead when you pressed Start never alerted.)
+          if (!now && was !== false) notifyDown(h.name, h.ip);
+          if (now && was === false) setOutput(`${h.name || h.ip} (${h.ip}) is back UP`);
+          lastAlive[h.ip] = now;
+        });
+        renderMonitorList();
+        updateMonitorBadge();
+      } finally {
+        monitorBusy = false;
+      }
+    }
+
+    function toggleMonitor() {
+      const btn = document.getElementById('btn-monitor-toggle');
+      const badge = document.getElementById('monitor-badge');
+      if (monitorRunning) {
+        clearInterval(monitorTimer);
+        monitorTimer = null;
+        monitorRunning = false;
+        lastAlive = {};                  // so the next Start alerts about anything still down
+        monitorStatus = {};
+        renderMonitorList();
+        btn.textContent = 'Start Monitor';
+        btn.className = 'bg-emerald-700 hover:bg-emerald-600 px-4 py-2 rounded-lg text-sm text-white';
+        badge.classList.add('hidden');
+        setOutput('Monitor stopped');
+        return;
+      }
+      if (!loadMonitorHosts().length) { alert('Add at least one switch IP first'); return; }
+      if (window.Notification && Notification.permission === 'default') {
+        Notification.requestPermission();
+      }
+      monitorRunning = true;
+      btn.textContent = 'Stop Monitor';
+      btn.className = 'bg-red-700 hover:bg-red-600 px-4 py-2 rounded-lg text-sm text-white';
+      badge.classList.remove('hidden');
+      badge.textContent = '● Monitor ON';
+      badge.className = 'text-xs px-2 py-1 rounded-full bg-emerald-900/50 text-emerald-300 border border-emerald-700';
+      const sec = parseInt(document.getElementById('monitor-interval').value) || 10;
+      monitorTick();
+      monitorTimer = setInterval(monitorTick, sec * 1000);
+      setOutput('Monitor started (every ' + sec + 's)');
+    }
+
+    // ---------- SSH setup over console ----------
+    function sshSetupBody() {
+      const c = getCreds();
+      if (c.connection_type !== 'console') { alert('Switch Connection type to Console first.'); return null; }
+      if (!c.serial_port) { alert('Enter the serial port, e.g. COM3'); return null; }
+      const v = id => document.getElementById(id).value.trim();
+      return {
+        ...c,
+        hostname: v('ssh-hostname') || null,
+        domain: v('ssh-domain'),
+        ssh_user: v('ssh-user'),
+        ssh_password: document.getElementById('ssh-pass').value,
+        enable_secret: document.getElementById('ssh-enable').value || null,
+        key_bits: parseInt(document.getElementById('ssh-bits').value),
+        mgmt_interface: v('ssh-mgmt-if') || null,
+        mgmt_ip: v('ssh-mgmt-ip') || null,
+        mgmt_mask: v('ssh-mgmt-mask') || null,
+        gateway: v('ssh-gw') || null,
+        save: document.getElementById('ssh-save').checked
+      };
+    }
+
+    function showSshPreview(cmds) {
+      const box = document.getElementById('ssh-preview');
+      box.textContent = cmds.join('\n');
+      box.classList.remove('hidden');
+    }
+
+    async function previewSshSetup() {
+      const body = sshSetupBody();
+      if (!body) return;
+      try {
+        const res = await fetch('/api/ssh-setup/preview', { method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify(body) });
+        const data = await res.json();
+        if (!data.success) { setOutput(data.error, true); return; }
+        showSshPreview(data.commands);
+        setOutput('Preview only – nothing was sent to the switch.');
+      } catch (e) { setOutput('Error: ' + e.message, true); }
+    }
+
+    async function applySshSetup() {
+      const body = sshSetupBody();
+      if (!body) return;
+      if (!confirm(`Enable SSH on the switch at ${body.serial_port}?\nThis creates RSA keys and changes the VTY lines to SSH-only.`)) return;
+      setOutput('Configuring SSH over console… RSA key generation can take up to a minute.');
+      try {
+        const res = await fetch('/api/ssh-setup', { method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify(body) });
+        const data = await res.json();
+        if (data.commands) showSshPreview(data.commands);
+        if (!data.success) { setOutput(data.error, true); return; }
+        setOutput(`${data.message}\n${data.saved ? 'Saved to startup-config.' : 'Not saved to startup-config.'}\n\n--- show ip ssh ---\n${data.ssh_status}`);
+      } catch (e) { setOutput('Error: ' + e.message, true); }
+    }
+
+    // ---------- IP Scanner ----------
+    async function runIpScan() {
+      const subnet = document.getElementById('scan-subnet').value.trim();
+      if (!subnet) { alert('Enter subnet e.g. 192.168.4.0/24 or 192.168.4.1-50'); return; }
+      const status = document.getElementById('scan-status');
+      const results = document.getElementById('scan-results');
+      status.textContent = 'Scanning ' + subnet + ' (please wait)...';
+      results.innerHTML = '';
+      setOutput('IP scan started: ' + subnet);
+      try {
+        const res = await fetch('/api/scan', {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({ subnet, timeout: 1.0 })
+        });
+        const data = await res.json();
+        if (!data.success) {
+          status.textContent = data.error || 'Scan failed';
+          setOutput(data.error || 'Scan failed', true);
+          return;
+        }
+        status.innerHTML = `Scanned <b>${data.scanned}</b> · Alive <span class="text-emerald-400">${data.alive_count}</span> · No reply ${data.dead_count}` +
+          (data.truncated ? ` · <span class="text-amber-400">⚠ range has ${data.total_hosts.toLocaleString()} hosts – only the first ${data.max_hosts} were scanned. Use a /24 or an explicit range.</span>` : '');
+        if (!data.alive.length) {
+          results.innerHTML = '<p class="text-slate-500">No hosts responded.</p>';
+        } else {
+          results.innerHTML = `<p class="text-[10px] text-slate-500 mb-2">Device type is a guess from TTL/hostname (not 100% accurate).</p>
+            <table class="w-full text-left"><thead><tr class="text-slate-400 border-b border-slate-700">
+            <th class="py-1">IP</th><th>Type</th><th>TTL</th><th>RTT</th><th></th></tr></thead><tbody>` +
+            data.alive.map(a => {
+              const label = a.device_label || 'Unknown';
+              const cls = a.device_class || '';
+              const color = cls.includes('pc') ? 'text-sky-300' : (cls.includes('mobile') ? 'text-amber-300' : (cls.includes('network') ? 'text-violet-300' : 'text-slate-300'));
+              return `<tr class="border-b border-slate-800">
+              <td class="py-1 text-emerald-300">${a.target}${a.hostname ? '<div class="text-[10px] text-slate-500">'+a.hostname+'</div>' : ''}</td>
+              <td class="${color}">${label}</td>
+              <td>${a.ttl != null ? a.ttl : '—'}</td>
+              <td>${a.rtt_ms != null ? a.rtt_ms + ' ms' : '—'}</td>
+              <td><button onclick="addScanToMonitor('${a.target}')" class="text-[10px] bg-slate-700 hover:bg-slate-600 px-2 py-0.5 rounded">+ Monitor</button>
+              <button onclick="useMonitorHost('${a.target}')" class="text-[10px] bg-slate-700 hover:bg-slate-600 px-2 py-0.5 rounded ml-1">Use</button></td>
+            </tr>`;
+            }).join('') + '</tbody></table>';
+        }
+        setOutput(`Scan done: ${data.alive_count} alive / ${data.scanned} scanned`);
+      } catch (e) {
+        status.textContent = e.message;
+        setOutput('Scan error: ' + e.message, true);
+      }
+    }
+
+    function addScanToMonitor(ip) {
+      const list = loadMonitorHosts();
+      if (list.some(h => h.ip === ip)) { setOutput(ip + ' already in monitor'); return; }
+      list.push({ ip, name: ip });
+      saveMonitorHosts(list);
+      renderMonitorList();
+      setOutput('Added ' + ip + ' to monitor list');
+    }
+
+    // init monitor list on load
+    renderMonitorList();
+
+    // ---------- Auth, permissions, users ----------
+    let ME = null, USERS = [], CATALOG = {};
+    async function initAuth() {
+      ME = await (await fetch('/api/auth/me')).json();
+      CATALOG = ME.catalog;
+      const chip = document.createElement('div'); chip.className = 'userchip';
+      chip.innerHTML = `<span>${esc(ME.username)}</span><em>${esc(ME.role)}</em><button onclick="logout()">Sign out</button>`;
+      document.querySelector('header > div').append(chip);
+      const p = new Set(ME.permissions);
+      document.querySelectorAll('[data-perm]').forEach(el => el.classList.toggle('perm-hidden', !p.has(el.dataset.perm)));
+      [...document.querySelectorAll('.navgroup')].reverse().forEach(g => g.classList.toggle('perm-hidden', !g.querySelector('.navitem:not(.perm-hidden)')));
+      if (p.has('users')) loadUsers();
+    }
+    async function logout() { await fetch('/api/auth/logout', { method: 'POST' }); location.href = '/login'; }
+    async function loadUsers() {
+      const d = await (await fetch('/api/users')).json();
+      if (!d.success) return;
+      USERS = d.users;
+      document.getElementById('users-body').innerHTML = USERS.map((u, i) => `<tr class="border-t" style="border-color:var(--line)">
+        <td class="py-2 pr-3 font-medium">${esc(u.username)}${u.disabled ? ' <span class="text-red-400 text-xs">(disabled)</span>' : ''}</td>
+        <td class="pr-3">${esc(u.role)}</td>
+        <td class="pr-3 text-xs text-slate-400">${u.role === 'admin' ? 'everything' : (u.permissions.map(esc).join(', ') || 'none')}</td>
+        <td class="text-right whitespace-nowrap"><button class="chip" onclick="uEdit(${i})">Edit</button> <button class="chip" onclick="uDelete(${i})">Delete</button></td></tr>`).join('');
+      uClear();
+    }
+    function uRole() { const a = document.getElementById('u-role').value === 'admin'; document.querySelectorAll('#u-perms input').forEach(c => { c.disabled = a; if (a) c.checked = true; }); }
+    function uClear() {
+      document.getElementById('u-title').textContent = 'Add a user';
+      ['u-name', 'u-pass'].forEach(i => document.getElementById(i).value = '');
+      document.getElementById('u-name').disabled = false; document.getElementById('u-role').value = 'user';
+      document.getElementById('u-disabled').checked = false; document.getElementById('u-pw-hint').textContent = '(8+ chars)';
+      document.getElementById('u-perms').innerHTML = Object.entries(CATALOG).map(([k, d]) =>
+        `<label class="flex items-start gap-2 text-sm text-slate-300"><input type="checkbox" value="${esc(k)}" ${['view', 'diagnostics'].includes(k) ? 'checked' : ''} class="mt-1" /><span><b>${esc(k)}</b><br><span class="text-xs text-slate-500">${esc(d)}</span></span></label>`).join('');
+      uRole();
+    }
+    function uEdit(i) {
+      const u = USERS[i]; uClear();
+      document.getElementById('u-title').textContent = 'Edit ' + u.username;
+      document.getElementById('u-name').value = u.username; document.getElementById('u-name').disabled = true;
+      document.getElementById('u-role').value = u.role; document.getElementById('u-disabled').checked = u.disabled;
+      document.getElementById('u-pw-hint').textContent = '(leave empty to keep)';
+      document.querySelectorAll('#u-perms input').forEach(c => c.checked = u.permissions.includes(c.value));
+      uRole();
+    }
+    async function uSave() {
+      const body = { username: document.getElementById('u-name').value.trim(), password: document.getElementById('u-pass').value || null,
+        role: document.getElementById('u-role').value, disabled: document.getElementById('u-disabled').checked,
+        permissions: [...document.querySelectorAll('#u-perms input:checked')].map(c => c.value) };
+      const d = await (await fetch('/api/users', { method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify(body) })).json();
+      d.success ? (setOutput('User saved: ' + body.username), loadUsers()) : setOutput(d.error, true);
+    }
+    async function uDelete(i) {
+      if (!confirm('Delete user ' + USERS[i].username + '?')) return;
+      const d = await (await fetch('/api/users/' + encodeURIComponent(USERS[i].username), { method: 'DELETE' })).json();
+      d.success ? loadUsers() : setOutput(d.error, true);
+    }
+
+    // ---------- Routing ----------
+    let ROUTES = [], RT_FILTER = null, rtNet = null, rtHist = [], rtHi = 0;
+    function rtView(v) {
+      ['table', 'map', 'term', 'manage'].forEach(x => document.getElementById('rt-v-' + x).classList.toggle('hidden', x !== v));
+      document.querySelectorAll('#rt-seg button').forEach((b, i) => b.classList.toggle('on', ['table', 'map', 'term', 'manage'][i] === v));
+      document.getElementById('rt-summary').classList.toggle('hidden', v === 'term' || v === 'manage');
+      if (v === 'map') drawRouteMap();
+      if (v === 'manage') rmType();
+    }
+    async function loadRoutes() {
+      const creds = requireCreds(); if (!creds) return;
+      setOutput('Reading the routing table…');
+      const d = await (await fetch('/api/routing/table', { method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify(creds) })).json();
+      if (!d.success) { setOutput(d.error, true); return; }
+      ROUTES = d.routes; RT_FILTER = null;
+      setOutput(`${ROUTES.length} route(s). Gateway of last resort: ${d.gateway || 'not set'}\n\n${d.raw}`);
+      document.getElementById('rt-summary').innerHTML = Object.entries(d.summary).map(([p, n]) => `<button class="chip" onclick="rtFilter('${p}')"><span class="pcode p-${p}">${p}</span> ${n}</button>`).join('') +
+        `<span class="text-slate-400 self-center">Gateway of last resort: ${esc(d.gateway || 'not set')}</span>`;
+      renderRoutes();
+      if (!document.getElementById('rt-v-map').classList.contains('hidden')) drawRouteMap();
+    }
+    function rtFilter(p) { RT_FILTER = RT_FILTER === p ? null : p; renderRoutes(); }
+    function renderRoutes() {
+      const rows = ROUTES.filter(r => !RT_FILTER || r.protocol === RT_FILTER);
+      document.getElementById('rt-body').innerHTML = rows.length ? rows.map(r => `<tr class="border-t" style="border-color:var(--line)">
+        <td class="py-1.5 pr-3"><span class="pcode p-${r.protocol}">${esc(r.code)}</span></td>
+        <td class="pr-3 font-mono">${esc(r.prefix)}${r.default ? ' <span class="text-amber-400 text-xs">default</span>' : ''}</td>
+        <td class="pr-3 font-mono">${esc(r.via || '—')}</td><td class="pr-3">${esc(r.interface || '—')}</td>
+        <td class="text-slate-400 font-mono">${r.via ? `[${r.ad}/${r.metric}]` : ''}</td></tr>`).join('')
+        : '<tr><td colspan="5" class="py-6 text-slate-500">No routes to show.</td></tr>';
+    }
+    function drawRouteMap() {
+      const box = document.getElementById('rt-map');
+      if (!ROUTES.length) { box.innerHTML = '<p class="p-6 text-slate-500 text-sm">Load routes first.</p>'; return; }
+      const col = { connected: '#34d399', local: '#34d399', static: '#f5a524', ospf: '#38bdf8', eigrp: '#a78bfa' };
+      const nodes = [{ id: 'sw', label: 'This switch', shape: 'box', color: { background: '#0b7f9c', border: '#22c7e6' }, font: { color: '#fff', size: 15 }, margin: 12 }], edges = [], hops = {}, nets = [];
+      ROUTES.forEach(r => {
+        if (r.via) { const h = hops[r.via] ??= { n: 0, ifs: {}, proto: {} }; h.n++; h.ifs[r.interface || '?'] = 1; h.proto[r.protocol] = (h.proto[r.protocol] || 0) + 1; }
+        else if (r.protocol === 'connected') nets.push(r);
+      });
+      Object.entries(hops).forEach(([ip, h]) => {
+        const p = Object.entries(h.proto).sort((a, b) => b[1] - a[1])[0][0];
+        nodes.push({ id: 'h' + ip, label: `${ip}\n${h.n} route${h.n > 1 ? 's' : ''}`, shape: 'dot', size: 14 + Math.min(h.n * 3, 26), color: col[p] || '#f87171', font: { color: '#e6f0f2', size: 12 } });
+        edges.push({ from: 'sw', to: 'h' + ip, label: Object.keys(h.ifs).join(', '), font: { color: '#8ba3ab', size: 10, strokeWidth: 0 }, color: { color: col[p] || '#f87171' } });
+      });
+      nets.slice(0, 24).forEach((r, i) => { nodes.push({ id: 'n' + i, label: `${r.prefix}\n${r.interface || ''}`, shape: 'ellipse', color: { background: '#0d1c21', border: '#34d399' }, font: { color: '#8ba3ab', size: 11 } }); edges.push({ from: 'sw', to: 'n' + i, color: { color: '#2f5460' }, dashes: true }); });
+      if (rtNet) rtNet.destroy();
+      rtNet = new vis.Network(box, { nodes: new vis.DataSet(nodes), edges: new vis.DataSet(edges) }, { physics: { barnesHut: { springLength: 150 } }, interaction: { hover: true } });
+    }
+    async function rtRun(cmd) {
+      const inp = document.getElementById('rt-cmd'); cmd = (cmd || inp.value).trim(); if (!cmd) return; inp.value = cmd;
+      const out = document.getElementById('rt-term');
+      if (!/^show\s+(ip|ipv6|route|standby|vrrp)\b/i.test(cmd)) { out.textContent += `\n\n% Only routing "show" commands are allowed here.`; return; }
+      const creds = requireCreds(); if (!creds) return;
+      rtHist.push(cmd); rtHi = rtHist.length;
+      out.textContent += `\n\n$ ${cmd}\n…`;
+      const d = await (await fetch('/api/show', { method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify({ ...creds, command: cmd }) })).json();
+      out.textContent = out.textContent.replace(/…$/, d.success ? d.output : '% ' + d.error);
+      out.scrollTop = out.scrollHeight;
+    }
+    function rtKey(e) {
+      if (e.key === 'Enter') rtRun();
+      else if (e.key === 'ArrowUp' && rtHist.length) { rtHi = Math.max(0, rtHi - 1); e.target.value = rtHist[rtHi]; e.preventDefault(); }
+      else if (e.key === 'ArrowDown' && rtHist.length) { rtHi = Math.min(rtHist.length, rtHi + 1); e.target.value = rtHist[rtHi] || ''; e.preventDefault(); }
+    }
+    function rmType() { const t = document.getElementById('rm-type').value; document.querySelectorAll('[data-rm]').forEach(el => el.classList.toggle('hidden', !el.dataset.rm.split(' ').includes(t))); }
+    function rmCommands() {
+      const v = id => document.getElementById(id).value.trim(), t = v('rm-type'), no = document.getElementById('rm-remove').checked ? 'no ' : '';
+      const ip = /^\d{1,3}(\.\d{1,3}){3}$/, need = (x, l) => { if (!ip.test(x)) throw new Error(l + ' must be an IPv4 address'); return x; };
+      if (t === 'static') return [`${no}ip route ${need(v('rm-net'), 'Network')} ${need(v('rm-mask'), 'Mask')} ${need(v('rm-nh'), 'Next hop')}${!no && v('rm-ad') ? ' ' + parseInt(v('rm-ad')) : ''}`];
+      if (t === 'default') return [`${no}ip route 0.0.0.0 0.0.0.0 ${need(v('rm-nh'), 'Next hop')}`];
+      if (t === 'routing') return [`${no}ip routing`];
+      const pid = parseInt(v('rm-pid')), area = v('rm-area');
+      if (!(pid > 0) || !/^\d+(\.\d+){0,3}$/.test(area)) throw new Error('OSPF process ID and area must be numbers');
+      const net = `${need(v('rm-onet'), 'Network')} ${need(v('rm-wc'), 'Wildcard')} area ${area}`;
+      return no ? [`router ospf ${pid}`, `no network ${net}`, 'exit'] : [`router ospf ${pid}`, ...(v('rm-rid') ? [`router-id ${need(v('rm-rid'), 'Router ID')}`] : []), `network ${net}`, 'exit'];
+    }
+    function rmPreview() {
+      try { const b = document.getElementById('rm-preview'); b.textContent = rmCommands().join('\n'); b.classList.remove('hidden'); }
+      catch (e) { setOutput(e.message, true); }
+    }
+    async function rmApply() {
+      let cmds; try { cmds = rmCommands(); } catch (e) { setOutput(e.message, true); return; }
+      const creds = requireCreds(); if (!creds) return;
+      if (!confirm('Send to the switch and save?\n\n' + cmds.join('\n'))) return;
+      const d = await (await fetch('/api/config', { method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify({ ...creds, config_commands: cmds, save: true }) })).json();
+      d.success ? (setOutput('Applied and saved.\n\n' + d.output), loadRoutes()) : setOutput(d.error, true);
+    }
+
+    // ---------- Reboot (two-step, enforced by the server) ----------
+    let RB = null, rbTimer = null;
+    function rbReset() { clearInterval(rbTimer); RB = null; document.getElementById('rb-step2').classList.add('hidden'); document.getElementById('rb-text').value = ''; }
+    async function rbRequest() {
+      const creds = requireCreds(); if (!creds) return;
+      const delay = parseInt(document.getElementById('rb-delay').value) || 0;
+      setOutput('Checking the switch…');
+      const d = await (await fetch('/api/reboot/request', { method: 'POST', headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ ...creds, save: document.getElementById('rb-save').checked, delay_minutes: delay }) })).json();
+      if (!d.success) { setOutput(d.error, true); return; }
+      RB = d; rbReset(); RB = d;
+      document.getElementById('rb-name').textContent = d.hostname + (delay ? ` (in ${delay} min)` : ' (immediately)');
+      document.getElementById('rb-step2').classList.remove('hidden');
+      let left = d.expires_in; document.getElementById('rb-count').textContent = left;
+      rbTimer = setInterval(() => { left--; document.getElementById('rb-count').textContent = left; if (left <= 0) { rbReset(); setOutput('Reboot request expired. Start again at step 1.', true); } }, 1000);
+      setOutput('Step 1 done. Confirm below to reboot ' + d.hostname + '.'); rbCheck();
+    }
+    function rbCheck() { document.getElementById('rb-go').disabled = !RB || document.getElementById('rb-text').value.trim() !== RB.hostname; }
+    async function rbConfirm() {
+      const creds = requireCreds(); if (!creds || !RB) return;
+      const body = { ...creds, token: RB.token, confirm_text: document.getElementById('rb-text').value };
+      setOutput('Sending reload…');
+      const d = await (await fetch('/api/reboot', { method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify(body) })).json();
+      if (d.success) { rbReset(); setOutput(d.message + '\n\n' + d.output); } else setOutput(d.error, true);
+    }
+    async function rbCancel() {
+      const creds = requireCreds(); if (!creds) return;
+      const d = await (await fetch('/api/reboot/cancel', { method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify(creds) })).json();
+      setOutput(d.success ? 'reload cancel sent.\n' + d.output : d.error, !d.success);
+    }
+
+    // ---------- Bootloader (switch:) + password recovery ----------
+    function blBody(extra) {
+      const c = getCreds();
+      if (c.connection_type !== 'console') { alert('Switch Connection type to Console first.'); return null; }
+      if (!c.serial_port) { alert('Enter the serial port, e.g. COM3'); return null; }
+      return { serial_port: c.serial_port, host: c.serial_port, baudrate: c.baudrate, ...extra };
+    }
+    function blShow(d) {
+      const m = document.getElementById('bl-mode'); m.textContent = 'mode: ' + (d.mode || 'unknown');
+      m.className = 'chip ' + (d.mode === 'bootloader' ? 'on' : '');
+      let t = d.error ? '% ' + d.error : (d.message ? d.message + '\n\n' : '');
+      if (d.env) t += Object.entries(d.env).map(([k, v]) => `${k}=${v}`).join('\n') + '\n\n';
+      document.getElementById('bl-out').textContent = (t + (d.output || '')).trim() || '(no output)';
+      if (d.images) document.getElementById('bl-images').innerHTML = '<option value="">(default boot)</option>' + d.images.map(i => `<option value="flash:${esc(i)}">${esc(i)}</option>`).join('');
+    }
+    async function blRun(action, extra = {}) {
+      const body = blBody({ action, ...extra }); if (!body) return;
+      document.getElementById('bl-out').textContent = `Running ${action}… (can take up to a minute)`;
+      try { blShow(await (await fetch('/api/bootloader/action', { method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify(body) })).json()); }
+      catch (e) { document.getElementById('bl-out').textContent = 'Error: ' + e.message; }
+    }
+    function blRecover() {
+      const t = document.getElementById('bl-confirm').value.trim();
+      if (t !== 'RECOVER') { alert('Type RECOVER in the box to confirm.'); return; }
+      if (confirm('This renames the startup config and boots the switch with a blank config. Continue?')) blRun('recover', { confirm_text: t });
+    }
+    // Called before a console connection test: if the switch is at 'switch:' show the bootloader tools instead of a timeout.
+    async function blProbe() {
+      const c = getCreds(); if (c.connection_type !== 'console' || !c.serial_port) return false;
+      try {
+        const d = await (await fetch('/api/bootloader/action', { method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify({ serial_port: c.serial_port, host: c.serial_port, baudrate: c.baudrate, action: 'detect' }) })).json();
+        if (d.success && (d.mode === 'bootloader' || d.mode === 'setup_dialog')) {
+          blShow(d); showTab('recovery');
+          setOutput(d.mode === 'bootloader' ? 'The switch is at the bootloader prompt (switch:). Opened the Bootloader tools.' : 'The switch is showing the initial configuration dialog (after a recovery boot). Press “Finish recovery”.');
+          return true;
+        }
+      } catch (e) { /* no permission or port busy: fall back to the normal connection test */ }
+      return false;
+    }
+
+    // ---------- Switch templates (whole-device) ----------
+    let SWT = [], swSel = -1;
+    function tplView(v) {
+      document.getElementById('tpl-v-sw').classList.toggle('hidden', v !== 'sw'); document.getElementById('tpl-v-snip').classList.toggle('hidden', v !== 'snip');
+      document.querySelectorAll('#tpl-seg button').forEach((b, i) => b.classList.toggle('on', ['sw', 'snip'][i] === v));
+    }
+    function renderSw() {
+      document.getElementById('sw-tiles').innerHTML = SWT.map((t, i) => `<button class="swtile ${i === swSel ? 'on' : ''}" onclick="swSelect(${i})">
+        <div class="flex items-center gap-3"><div class="swglyph" aria-hidden="true">${t.glyph}</div><div><div class="font-semibold">${esc(t.name)}</div><div class="text-[11px] text-slate-400">${t.commands.length} commands · ${t.params.length} fields</div></div></div>
+        <div class="mini-ports" aria-hidden="true">${'<i></i>'.repeat(14)}</div>
+        <p class="text-xs text-slate-400">${esc(t.tagline)}</p>
+        <div class="flex flex-wrap gap-1.5 mt-2">${t.tags.map(g => `<span class="chip">${esc(g)}</span>`).join('')}</div></button>`).join('');
+    }
+    function swSelect(i) {
+      swSel = i; renderSw(); const t = SWT[i], box = document.getElementById('sw-detail'); box.classList.remove('hidden');
+      box.innerHTML = `<div class="grid grid-cols-1 xl:grid-cols-5 gap-4"><div class="xl:col-span-2">
+          <h3 class="font-semibold mb-2">${esc(t.name)}</h3><div class="grid grid-cols-2 gap-2">${t.params.map(p => `<div><label class="text-[10px] text-slate-500">${esc(p.label)}</label>
+            <input id="swp-${esc(p.key)}" value="${esc(p.default)}" oninput="swPrev()" class="input w-full rounded-md px-2 py-1.5 text-sm" /></div>`).join('')}</div>
+          <div class="flex flex-wrap gap-2 mt-4"><button data-perm="config" onclick="swUse()" class="btn-primary px-4 py-2 rounded-lg text-sm text-white ${ME && !ME.permissions.includes('config') ? 'perm-hidden' : ''}">Send to Config Push</button>
+            <button onclick="swCopy()" class="bg-slate-700 hover:bg-slate-600 px-4 py-2 rounded-lg text-sm text-white">Copy</button></div></div>
+        <div class="xl:col-span-3"><div class="text-[11px] text-slate-400 mb-1">Live preview</div><pre id="sw-prev" class="codeprev"></pre></div></div>`;
+      swPrev(); box.scrollIntoView({ block: 'nearest' });
+    }
+    function swCmds() {
+      const t = SWT[swSel];
+      return t.commands.map(c => c.replace(/\{(\w+)\}/g, (m, k) => { const el = document.getElementById('swp-' + k); return el ? el.value.trim() : m; }));
+    }
+    function swPrev() { document.getElementById('sw-prev').innerHTML = swCmds().map(c => `<span class="${/^(hostname|interface|vlan|router|line|ip access-list)\b/.test(c) ? 'top' : ''}">${esc(c)}</span>`).join(''); }
+    function swUse() {
+      if (SWT[swSel].params.some(p => !document.getElementById('swp-' + p.key).value.trim())) { alert('Fill in every field first.'); return; }
+      document.getElementById('config-commands').value = swCmds().join('\n'); showTab('config');
+    }
+    function swCopy() { navigator.clipboard.writeText(swCmds().join('\n')).then(() => setOutput('Template copied to the clipboard.')); }
+
+    // ---------- Template library ----------
+    let TPL = [], tplCat = 'All';
+    async function loadTemplates() {
+      const d = await (await fetch('/api/templates')).json();
+      TPL = d.templates; SWT = d.switch_templates || []; renderTpl(); renderSw(); if (SWT.length) swSelect(0);
+    }
+    function renderTpl() {
+      const cats = ['All', ...new Set(TPL.map(t => t.category))], q = document.getElementById('tpl-search').value.toLowerCase();
+      document.getElementById('tpl-cats').innerHTML = cats.map(c => `<button class="chip ${c === tplCat ? 'on' : ''}" onclick="tplCat='${c}';renderTpl()">${c}${c === 'All' ? ' (' + TPL.length + ')' : ''}</button>`).join('');
+      document.getElementById('templates-list').innerHTML = TPL.map((t, i) => [t, i]).filter(([t]) => (tplCat === 'All' || t.category === tplCat) && (t.name + t.description + t.category).toLowerCase().includes(q)).map(([t, i]) => `
+        <div class="tplcard" id="tpl-${i}" style="--cat:${({ VLAN: '#22c7e6', Interface: '#34d399', Switching: '#a78bfa', Routing: '#f5a524', Security: '#f87171', System: '#8ba3ab' })[t.category] || '#2f5460'}">
+          <div class="flex justify-between gap-2"><div><h3>${esc(t.name)}</h3><p class="text-xs text-slate-400 mt-0.5">${esc(t.description)}</p></div><span class="chip h-fit">${esc(t.category)}</span></div>
+          ${t.params.length ? `<div class="grid grid-cols-2 gap-2 mt-2">${t.params.map(p => `<div><label class="text-[10px] text-slate-500">${esc(p.label)}</label><input data-k="${esc(p.key)}" value="${esc(p.default)}" oninput="tplPrev(${i})" class="input w-full rounded-md" /></div>`).join('')}</div>` : ''}
+          <pre id="tpl-pre-${i}" class="mt-2 rounded-md p-2 text-[11px] font-mono text-sky-300" style="background:#060e11;border:1px solid var(--line);white-space:pre-wrap">${esc(tplCmds(i, true).join('\n'))}</pre>
+          <div class="flex justify-end mt-2"><button data-perm="config" onclick="useTemplate(${i})" class="btn-primary text-xs px-3 py-1.5 rounded-lg text-white ${ME && !ME.permissions.includes('config') ? 'perm-hidden' : ''}">Send to Config Push</button></div>
+        </div>`).join('') || '<p class="text-slate-500 text-sm">No templates match.</p>';
+    }
+    function tplCmds(i) {
+      const card = document.getElementById('tpl-' + i);
+      return TPL[i].commands.map(c => c.replace(/\{(\w+)\}/g, (m, k) => { const el = card && card.querySelector(`[data-k="${k}"]`); return el ? el.value.trim() : (TPL[i].params.find(p => p.key === k) || {}).default ?? m; }));
+    }
+    function tplPrev(i) { document.getElementById('tpl-pre-' + i).textContent = tplCmds(i).join('\n'); }
+    function useTemplate(i) { document.getElementById('config-commands').value = tplCmds(i).join('\n'); showTab('config'); }
+
+    initAuth().then(loadTemplates);
+  </script>
+</body>
+</html>

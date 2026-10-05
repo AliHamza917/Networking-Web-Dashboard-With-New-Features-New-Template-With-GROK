@@ -1,0 +1,63 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <title>Sign in · Ali Hamza Cisco Networking Dashboard</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com" />
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+  <link href="https://fonts.googleapis.com/css2?family=Figtree:wght@400;500;600;700&family=JetBrains+Mono:wght@500&display=swap" rel="stylesheet" />
+  <style>
+    :root { --bg:#0a1519; --panel:#12252b; --line:#23404a; --line2:#2f5460; --text:#e6f0f2; --muted:#8ba3ab; --cyan:#22c7e6; color-scheme:dark; }
+    * { box-sizing:border-box; }
+    body { margin:0; min-height:100vh; display:grid; place-items:center; padding:1.5rem; font-family:'Figtree',system-ui,sans-serif; color:var(--text); background-color:var(--bg);
+      background-image:radial-gradient(900px 420px at 8% -8%, rgba(34,199,230,.15), transparent 60%), linear-gradient(rgba(139,163,171,.045) 1px, transparent 1px), linear-gradient(90deg, rgba(139,163,171,.045) 1px, transparent 1px);
+      background-size:auto,34px 34px,34px 34px; }
+    main { width:100%; max-width:390px; }
+    .ports { display:flex; gap:6px; justify-content:center; margin-bottom:1.25rem; }
+    .ports i { width:22px; height:26px; border:1px solid var(--line2); border-bottom:3px solid #34d399; border-radius:5px 5px 3px 3px; background:#0d1c21; position:relative; }
+    .ports i::after { content:""; position:absolute; top:4px; right:4px; width:4px; height:4px; border-radius:50%; background:#34d399; box-shadow:0 0 6px #34d399; }
+    .ports i:nth-child(3n)::after { background:#38bdf8; box-shadow:0 0 6px #38bdf8; } .ports i:nth-child(3n) { border-bottom-color:#38bdf8; }
+    .ports i:nth-child(5) { border-bottom-color:#4b626a; } .ports i:nth-child(5)::after { background:#4b626a; box-shadow:none; }
+    form { background:linear-gradient(180deg,var(--panel),#0f2126); border:1px solid var(--line); border-radius:16px; padding:1.75rem; box-shadow:0 20px 40px -24px #000; }
+    h1 { margin:0 0 .25rem; font-size:1.35rem; letter-spacing:-.01em; } p { margin:0 0 1.25rem; color:var(--muted); font-size:.85rem; }
+    label { display:block; font-size:.75rem; font-weight:500; color:var(--muted); margin-top:.9rem; }
+    input { width:100%; margin-top:.3rem; padding:.65rem .8rem; font:inherit; color:var(--text); background:var(--bg); border:1px solid var(--line2); border-radius:9px; }
+    input:focus { outline:none; border-color:var(--cyan); box-shadow:0 0 0 3px rgba(34,199,230,.18); }
+    button { width:100%; margin-top:1.4rem; padding:.7rem; font:inherit; font-weight:600; color:#fff; cursor:pointer; border:1px solid #1bb7da55; border-radius:10px; background:linear-gradient(180deg,#12a2c4,#0b7f9c); }
+    button:hover { filter:brightness(1.08); } button:disabled { opacity:.6; cursor:wait; }
+    #err { min-height:1.2rem; margin-top:.9rem; font-size:.82rem; color:#f87171; }
+    small { display:block; text-align:center; margin-top:1rem; color:#5d777f; font-size:.72rem; }
+    :focus-visible { outline:2px solid var(--cyan); outline-offset:2px; }
+  </style>
+</head>
+<body>
+  <main>
+    <div class="ports" aria-hidden="true"><i></i><i></i><i></i><i></i><i></i><i></i><i></i><i></i></div>
+    <form id="f" autocomplete="on">
+      <h1>Cisco Networking Dashboard</h1>
+      <p>Sign in to manage your switches.</p>
+      <label for="u">Username</label><input id="u" name="username" autocomplete="username" required autofocus />
+      <label for="p">Password</label><input id="p" name="password" type="password" autocomplete="current-password" required />
+      <div id="err" role="alert"></div>
+      <button id="b" type="submit">Sign in</button>
+    </form>
+    <small>Ali Hamza · what you can do depends on the permissions assigned to your account</small>
+  </main>
+  <script>
+    document.getElementById('f').addEventListener('submit', async e => {
+      e.preventDefault();
+      const b = document.getElementById('b'), err = document.getElementById('err');
+      b.disabled = true; err.textContent = '';
+      try {
+        const res = await fetch('/api/auth/login', { method: 'POST', headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({ username: document.getElementById('u').value, password: document.getElementById('p').value }) });
+        const d = await res.json();
+        if (d.success) { location.href = '/'; return; }
+        err.textContent = d.error || 'Sign-in failed';
+      } catch (x) { err.textContent = 'Cannot reach the server'; }
+      b.disabled = false;
+    });
+  </script>
+</body>
+</html>

@@ -1,0 +1,20 @@
+__pycache__/
+*.py[cod]
+*$py.class
+.venv/
+venv/
+env/
+dist/
+build/
+*.egg-info/
+*.exe
+.env
+.DS_Store
+*.log
+packages/
+.idea/
+.vscode/
+*.cfg
+
+# user database, session secret and first-run password (never commit)
+data/

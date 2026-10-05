@@ -1,0 +1,32 @@
+========================================
+  Ali Hamza Cisco Networking Dashboard - Install
+========================================
+
+IMPORTANT for older Cisco switches:
+  After install, if SSH fails with "no acceptable kex algorithm":
+    python -m pip install paramiko==2.12.0
+
+WINDOWS
+-------
+1. Install Python 3.10+ from python.org (check "Add to PATH")
+2. Extract this folder, open CMD inside it:
+
+   python -m pip install -r requirements.txt
+   python -m pip install paramiko==2.12.0
+
+3. Start web UI:
+   python -m uvicorn app.main:app --host 127.0.0.1 --port 8000 --reload
+
+4. Browser: http://127.0.0.1:8000
+
+Desktop app:
+   python desktop_app.py
+   OR double-click run_desktop.bat
+
+Build .exe:
+   double-click build_exe.bat
+
+Test SSH only:
+  python -c "from netmiko import ConnectHandler; c=ConnectHandler(device_type='cisco_ios', host='IP', username='USER', password='PASS', secret='', port=22, use_keys=False, allow_agent=False, conn_timeout=90, global_delay_factor=2); print(c.find_prompt()); c.disconnect()"
+
+Full docs: README.md
