@@ -21,6 +21,9 @@ Web + Windows desktop GUI for **Cisco IOS / IOS-XE** switches over SSH (Netmiko)
 | **Routing** | Route table (parsed), route map, routing terminal, add/remove static routes, default route, OSPF network |
 | **Templates** | 44 parameterised command templates (VLAN, Interface, Switching, Routing, Security, System) |
 | **Users & Permissions** | Login page; admins create users and tick exactly what each may do |
+| **Appearance / Themes** | 17 frontend colour themes (admin only) — Ocean, Midnight, Forest, Sunset, Slate, Rose, Arctic, Ember, Violet, Graphite, Teal, Indigo, Sand, Cyber, Nord, Dracula, Light |
+| **Switch Monitor metrics** | Per-device live uptime, downtime, total downtime, total uptime, availability % |
+| **Permission-aware Manual** | Full end-user manual; sections shown match the signed-in user permissions |
 | **Reboot Switch** | Two-step reboot, enforced by the server: request a one-time token, then type the switch's real name. Optional save-first and delayed reload |
 | **Bootloader & Recovery** | Console only. Detects the `switch:` prompt, reads boot variables and images, boots, and runs password recovery (rename config, boot blank, restore config) |
 | **Templates** | Five whole-switch templates (access, distribution/L3, branch, lab, secure baseline) plus 44 command snippets |

@@ -18,6 +18,144 @@
       --mono:'JetBrains Mono',ui-monospace,SFMono-Regular,Consolas,monospace;
       color-scheme: dark;
     }
+
+    /* ========== Theme system (admin-selectable frontend templates) ========== */
+    /* Each [data-theme] overrides CSS variables. Default is "ocean" (current look). */
+
+    [data-theme="midnight"] {
+      --bg:#0b0f1a; --panel:#141b2d; --panel-2:#0e1422; --line:#243049; --line-2:#2e3d5c;
+      --text:#e8eef8; --muted:#8b9bb8; --cyan:#6366f1; --cyan-d:#4338ca;
+      --ok:#34d399; --trunk:#818cf8; --warn:#fbbf24; --off:#4b5568; --bad:#f87171;
+    }
+    [data-theme="forest"] {
+      --bg:#0a1410; --panel:#12241c; --panel-2:#0d1c15; --line:#1e3d30; --line-2:#2a5240;
+      --text:#e6f2eb; --muted:#8bab9a; --cyan:#34d399; --cyan-d:#059669;
+      --ok:#4ade80; --trunk:#6ee7b7; --warn:#fbbf24; --off:#4b6a5a; --bad:#f87171;
+    }
+    [data-theme="sunset"] {
+      --bg:#1a0f0a; --panel:#2b1a12; --panel-2:#21140d; --line:#4a3023; --line-2:#603f2f;
+      --text:#f2ebe6; --muted:#ab9a8b; --cyan:#f97316; --cyan-d:#c2410c;
+      --ok:#34d399; --trunk:#fb923c; --warn:#fbbf24; --off:#6a5a4b; --bad:#f87171;
+    }
+    [data-theme="slate"] {
+      --bg:#0f1115; --panel:#1a1d24; --panel-2:#14171c; --line:#2a303c; --line-2:#3a4252;
+      --text:#e8eaef; --muted:#9399a8; --cyan:#94a3b8; --cyan-d:#64748b;
+      --ok:#34d399; --trunk:#a5b4fc; --warn:#fbbf24; --off:#4b5563; --bad:#f87171;
+    }
+    [data-theme="rose"] {
+      --bg:#150a12; --panel:#24121f; --panel-2:#1c0e18; --line:#402334; --line-2:#542f45;
+      --text:#f2e6ee; --muted:#ab8b9f; --cyan:#ec4899; --cyan-d:#be185d;
+      --ok:#34d399; --trunk:#f472b6; --warn:#fbbf24; --off:#6a4b5d; --bad:#f87171;
+    }
+    [data-theme="arctic"] {
+      --bg:#0a1219; --panel:#12202b; --panel-2:#0d1821; --line:#23404a; --line-2:#2f5460;
+      --text:#e6f0f8; --muted:#8ba3b8; --cyan:#38bdf8; --cyan-d:#0284c7;
+      --ok:#34d399; --trunk:#7dd3fc; --warn:#fbbf24; --off:#4b626a; --bad:#f87171;
+    }
+    [data-theme="ember"] {
+      --bg:#1a0c0c; --panel:#2b1414; --panel-2:#211010; --line:#4a2323; --line-2:#602f2f;
+      --text:#f2e6e6; --muted:#ab8b8b; --cyan:#ef4444; --cyan-d:#b91c1c;
+      --ok:#34d399; --trunk:#f87171; --warn:#fbbf24; --off:#6a4b4b; --bad:#fca5a5;
+    }
+    [data-theme="violet"] {
+      --bg:#0f0a1a; --panel:#1c122b; --panel-2:#150e21; --line:#34234a; --line-2:#452f60;
+      --text:#eee6f2; --muted:#9f8bab; --cyan:#a78bfa; --cyan-d:#7c3aed;
+      --ok:#34d399; --trunk:#c4b5fd; --warn:#fbbf24; --off:#5d4b6a; --bad:#f87171;
+    }
+    [data-theme="graphite"] {
+      --bg:#111111; --panel:#1c1c1c; --panel-2:#161616; --line:#333333; --line-2:#444444;
+      --text:#e8e8e8; --muted:#999999; --cyan:#eab308; --cyan-d:#a16207;
+      --ok:#34d399; --trunk:#facc15; --warn:#f59e0b; --off:#555555; --bad:#f87171;
+    }
+    [data-theme="teal"] {
+      --bg:#0a1514; --panel:#122523; --panel-2:#0d1c1a; --line:#23403c; --line-2:#2f5450;
+      --text:#e6f2f0; --muted:#8baba7; --cyan:#2dd4bf; --cyan-d:#0d9488;
+      --ok:#34d399; --trunk:#5eead4; --warn:#fbbf24; --off:#4b6a66; --bad:#f87171;
+    }
+    [data-theme="indigo"] {
+      --bg:#0a0e1a; --panel:#12182b; --panel-2:#0d1221; --line:#232a4a; --line-2:#2f3860;
+      --text:#e6eaf2; --muted:#8b93ab; --cyan:#818cf8; --cyan-d:#4f46e5;
+      --ok:#34d399; --trunk:#a5b4fc; --warn:#fbbf24; --off:#4b506a; --bad:#f87171;
+    }
+    [data-theme="sand"] {
+      --bg:#16140f; --panel:#24201a; --panel-2:#1c1914; --line:#3d372c; --line-2:#524a3a;
+      --text:#f2efe6; --muted:#aba48b; --cyan:#d4a017; --cyan-d:#a16207;
+      --ok:#34d399; --trunk:#e8c547; --warn:#fbbf24; --off:#6a644b; --bad:#f87171;
+    }
+    [data-theme="cyber"] {
+      --bg:#050a0a; --panel:#0a1818; --panel-2:#071212; --line:#0f3a3a; --line-2:#145050;
+      --text:#d0fff8; --muted:#5aaba0; --cyan:#00ffc8; --cyan-d:#00b894;
+      --ok:#00ff9d; --trunk:#00e5ff; --warn:#ffd600; --off:#2a4a45; --bad:#ff4d6d;
+    }
+    [data-theme="nord"] {
+      --bg:#2e3440; --panel:#3b4252; --panel-2:#343a46; --line:#4c566a; --line-2:#5e6a7e;
+      --text:#eceff4; --muted:#a0a8b8; --cyan:#88c0d0; --cyan-d:#5e81ac;
+      --ok:#a3be8c; --trunk:#81a1c1; --warn:#ebcb8b; --off:#4c566a; --bad:#bf616a;
+    }
+    [data-theme="dracula"] {
+      --bg:#282a36; --panel:#343746; --panel-2:#2d2f3b; --line:#44475a; --line-2:#565a70;
+      --text:#f8f8f2; --muted:#a0a4b8; --cyan:#bd93f9; --cyan-d:#9580d1;
+      --ok:#50fa7b; --trunk:#8be9fd; --warn:#f1fa8c; --off:#6272a4; --bad:#ff5555;
+    }
+    [data-theme="light"] {
+      --bg:#f4f7f9; --panel:#ffffff; --panel-2:#eef2f5; --line:#d0dbe3; --line-2:#b8c8d4;
+      --text:#1a2a32; --muted:#5a7580; --cyan:#0ea5e9; --cyan-d:#0284c7;
+      --ok:#059669; --trunk:#0284c7; --warn:#d97706; --off:#94a3b8; --bad:#dc2626;
+      color-scheme: light;
+    }
+    [data-theme="light"] body {
+      background-image:
+        radial-gradient(900px 420px at 8% -8%, rgba(14,165,233,.10), transparent 60%),
+        linear-gradient(rgba(90,117,128,.04) 1px, transparent 1px),
+        linear-gradient(90deg, rgba(90,117,128,.04) 1px, transparent 1px);
+    }
+    [data-theme="light"] body pre#output {
+      color:#0f766e; background:#f0fdfa; border-color:var(--line); border-left-color:var(--cyan);
+    }
+    [data-theme="light"] body header { background:rgba(244,247,249,.92); }
+    [data-theme="light"] #topology-canvas { background:radial-gradient(circle at 50% 40%, #e0f2fe, var(--bg)); }
+
+    /* Theme picker cards */
+    .theme-grid { display:grid; grid-template-columns:repeat(auto-fill,minmax(140px,1fr)); gap:12px; }
+    .theme-card {
+      border:2px solid var(--line); border-radius:12px; padding:12px; cursor:pointer;
+      transition:border-color .15s, transform .12s, box-shadow .15s; background:var(--panel-2);
+    }
+    .theme-card:hover { border-color:var(--cyan); transform:translateY(-2px); }
+    .theme-card.active { border-color:var(--cyan); box-shadow:0 0 0 3px rgba(34,199,230,.25); }
+    .theme-swatch { height:36px; border-radius:8px; margin-bottom:8px; display:flex; overflow:hidden; }
+    .theme-swatch span { flex:1; }
+    .theme-card .tname { font-size:13px; font-weight:600; }
+    .theme-card .tdesc { font-size:10px; color:var(--muted); margin-top:2px; }
+
+    /* Monitor stats chips */
+    .mon-stat { display:inline-flex; align-items:center; gap:4px; font-size:10px; padding:2px 7px; border-radius:6px; background:var(--panel-2); border:1px solid var(--line); }
+    .mon-stat .lbl { color:var(--muted); }
+    .mon-stat .val { font-weight:600; font-family:var(--mono); }
+
+    /* Manual screenshot mock frames */
+    .manual-shot {
+      border:1px solid var(--line); border-radius:10px; overflow:hidden; margin:12px 0;
+      background:var(--panel-2); max-width:640px;
+    }
+    .manual-shot .ms-bar {
+      display:flex; align-items:center; gap:6px; padding:6px 10px; background:var(--bg);
+      border-bottom:1px solid var(--line); font-size:11px; color:var(--muted);
+    }
+    .manual-shot .ms-dot { width:8px; height:8px; border-radius:50%; }
+    .manual-shot .ms-body { padding:14px; font-size:12px; line-height:1.5; color:var(--muted); }
+    .manual-shot .ms-body strong { color:var(--text); }
+    .manual-section { margin-bottom:28px; padding-bottom:20px; border-bottom:1px solid var(--line); }
+    .manual-section:last-child { border-bottom:none; }
+    .manual-section h3 { color:var(--cyan); font-size:1.05rem; margin-bottom:8px; }
+    .manual-section h4 { font-size:.9rem; margin:12px 0 6px; color:var(--text); }
+    .manual-section ul, .manual-section ol { margin:6px 0 6px 1.2rem; color:var(--muted); font-size:13px; }
+    .manual-section li { margin:3px 0; }
+    .manual-section p { font-size:13px; color:var(--muted); margin:6px 0; }
+    .manual-section code { font-family:var(--mono); font-size:11px; background:var(--bg); padding:1px 5px; border-radius:4px; border:1px solid var(--line); }
+    .perm-badge { display:inline-block; font-size:10px; padding:1px 6px; border-radius:4px; background:rgba(34,199,230,.12); color:var(--cyan); border:1px solid rgba(34,199,230,.3); margin-left:6px; vertical-align:middle; }
+
+
     /* body-prefixed selectors beat Tailwind's single-class utilities */
     body { font-family:var(--ui); color:var(--text); background-color:var(--bg);
       background-image:
@@ -147,6 +285,10 @@
     body :focus-visible { outline:2px solid var(--cyan); outline-offset:2px; }
     @media (prefers-reduced-motion: reduce) { * { transition:none !important; animation:none !important; } }
   </style>
+
+  <script>
+    (function(){ try { var t = localStorage.getItem('cisco_dash_theme'); if (t && t !== 'ocean') document.documentElement.setAttribute('data-theme', t); } catch(e){} })();
+  </script>
 </head>
 <body class="min-h-screen">
   <!-- Header -->
@@ -238,7 +380,7 @@
         <details class="navgroup" open><summary>Tools</summary><button onclick="showTab('config')" id="tab-config" class="navitem" data-perm="config"><span class="navico" aria-hidden="true">⌨</span>Config Push</button><button onclick="showTab('templates')" id="tab-templates" class="navitem" data-perm="view"><span class="navico" aria-hidden="true">▤</span>Templates</button><button onclick="showTab('scanner')" id="tab-scanner" class="navitem" data-perm="diagnostics"><span class="navico" aria-hidden="true">⌕</span>IP Scanner</button><button onclick="backupConfig()" class="navitem action" data-perm="backup"><span class="navico" aria-hidden="true">⬇</span>Backup running-config</button></details>
         <details class="navgroup"><summary>System</summary><button onclick="showTab('reboot')" id="tab-reboot" class="navitem" data-perm="reboot"><span class="navico" aria-hidden="true">⟳</span>Reboot Switch</button><button onclick="runShow('show version')" class="navitem action" data-perm="view"><span class="navico" aria-hidden="true">></span>show version</button><button onclick="runShow('show running-config')" class="navitem action" data-perm="view"><span class="navico" aria-hidden="true">></span>show running-config</button><button onclick="runShow('show logging')" class="navitem action" data-perm="view"><span class="navico" aria-hidden="true">></span>show logging</button><button onclick="runShow('show inventory')" class="navitem action" data-perm="view"><span class="navico" aria-hidden="true">></span>show inventory</button></details>
         <div id="nav-setup" class="hidden"><details class="navgroup" open><summary>Setup · console only</summary><button onclick="showTab('sshsetup')" id="tab-sshsetup" class="navitem" data-perm="ssh_setup"><span class="navico" aria-hidden="true">⚿</span>Enable SSH</button><button onclick="showTab('recovery')" id="tab-recovery" class="navitem" data-perm="bootloader"><span class="navico" aria-hidden="true">⛑</span>Bootloader &amp; Recovery</button></details></div>
-        <details class="navgroup" open><summary>Admin</summary><button onclick="showTab('users')" id="tab-users" class="navitem" data-perm="users"><span class="navico" aria-hidden="true">☺</span>Users & Permissions</button></details>
+        <details class="navgroup" open><summary>Admin</summary><button onclick="showTab('users')" id="tab-users" class="navitem" data-perm="users"><span class="navico" aria-hidden="true">☺</span>Users & Permissions</button><button onclick="showTab('themes')" id="tab-themes" class="navitem" data-perm="users"><span class="navico" aria-hidden="true">◐</span>Appearance / Themes</button></details>
         <details class="navgroup" open><summary>Help</summary><button onclick="showTab('manual')" id="tab-manual" class="navitem"><span class="navico" aria-hidden="true">?</span>Manual</button></details>
       </nav>
     </section>
@@ -302,15 +444,16 @@
         <div id="trace-hop-map" class="flex flex-wrap items-stretch gap-0 min-h-[90px] p-3 rounded-lg bg-slate-950 border border-slate-700 overflow-x-auto"></div>
       </div>
 
-      <!-- Monitor Panel – continuous multi-switch ping -->
+      <!-- Monitor Panel – continuous multi-switch ping + uptime/downtime -->
       <div id="panel-monitor" class="card rounded-xl p-5 hidden">
         <h2 class="text-lg font-semibold mb-1">Switch Monitor</h2>
-        <p class="text-xs text-slate-400 mb-4">Continuous ping · saved IPs · alerts when a switch goes down</p>
+        <p class="text-xs text-slate-400 mb-4">Continuous ping · saved IPs · live uptime / downtime / total downtime · alerts when a switch goes down</p>
         <div class="flex flex-wrap gap-2 mb-3">
           <input id="monitor-ip" type="text" placeholder="192.168.4.7" class="input rounded-lg px-3 py-2 text-sm flex-1 min-w-[140px]" />
           <input id="monitor-name" type="text" placeholder="Name (optional)" class="input rounded-lg px-3 py-2 text-sm w-40" />
           <button onclick="addMonitorHost()" class="btn-primary px-4 py-2 rounded-lg text-sm text-white">Add</button>
           <button onclick="toggleMonitor()" id="btn-monitor-toggle" class="bg-emerald-700 hover:bg-emerald-600 px-4 py-2 rounded-lg text-sm text-white">Start Monitor</button>
+          <button onclick="resetMonitorStats()" class="bg-slate-700 hover:bg-slate-600 px-3 py-2 rounded-lg text-sm text-slate-200" title="Reset all uptime/downtime counters">Reset stats</button>
         </div>
         <div class="flex flex-wrap gap-3 text-xs text-slate-400 mb-3">
           <label class="flex items-center gap-1">Interval
@@ -325,8 +468,9 @@
             <input type="checkbox" id="monitor-alerts" checked class="rounded" /> Browser alerts on disconnect
           </label>
         </div>
+        <div id="monitor-summary" class="flex flex-wrap gap-2 mb-3 text-xs"></div>
         <div id="monitor-list" class="space-y-2"></div>
-        <p class="text-xs text-slate-500 mt-3">IPs are stored in this browser (localStorage) for next time.</p>
+        <p class="text-xs text-slate-500 mt-3">IPs and uptime/downtime stats are stored in this browser (localStorage). Stats continue across page reloads while monitoring is active.</p>
       </div>
 
       <!-- IP Scanner Panel -->
@@ -611,32 +755,22 @@
         </div>
       </div>
 
-      <!-- User Manual -->
-      <div id="panel-manual" class="card rounded-xl p-5 hidden">
-        <h2 class="text-lg font-semibold mb-3">End-user usage manual</h2>
-        <div class="text-sm text-slate-300 space-y-3 max-h-[480px] overflow-y-auto leading-relaxed">
-          <p><strong class="text-sky-400">Ali Hamza Cisco Networking Dashboard</strong> helps you manage Cisco IOS / IOS-XE switches from a browser.</p>
-          <h3 class="text-white font-semibold">1. Connect</h3>
-          <ul class="list-disc pl-5 space-y-1 text-slate-400">
-            <li><b>SSH</b>: enter switch IP, username, password (enable secret if needed), port 22 → Test Connection.</li>
-            <li><b>Console cable</b>: choose Console, select COM port (Detect), baud 9600, same user/pass → Test Connection. Close Putty on that COM first.</li>
-          </ul>
-          <h3 class="text-white font-semibold">2. Port Map</h3>
-          <p class="text-slate-400">Refresh Ports. Green = access up, blue = trunk, gray = down. Click a port to see MAC and IP of connected hosts.</p>
-          <h3 class="text-white font-semibold">3. Topology / Track Route</h3>
-          <p class="text-slate-400">Topology uses CDP/LLDP. Track Route runs traceroute from the switch and shows a visual hop map.</p>
-          <h3 class="text-white font-semibold">4. Monitor &amp; IP Scanner</h3>
-          <p class="text-slate-400">Monitor continuously pings saved switch IPs and alerts if one goes down. Scanner finds live hosts; <b>device type is a guess</b> (PC / mobile / network) based on TTL — not 100% accurate, and a switch may look like a PC if TTL is rewritten.</p>
-          <h3 class="text-white font-semibold">5. Config / Backup / Restore</h3>
-          <ul class="list-disc pl-5 space-y-1 text-slate-400">
-            <li>Config Push: paste CLI lines and apply.</li>
-            <li>Backup: download running-config.</li>
-            <li>Upload &amp; Apply Backup: restore from a .cfg file (review carefully before production).</li>
-          </ul>
-          <h3 class="text-white font-semibold">6. Safety</h3>
-          <p class="text-slate-400">Lab / trusted networks only. Always review commands. © Ali Hamza · alihamza51326@gmail.com</p>
-        </div>
+
+      <!-- Appearance / Themes panel (admin only) -->
+      <div id="panel-themes" class="card rounded-xl p-5 hidden">
+        <h2 class="text-lg font-semibold mb-1">Appearance / Themes</h2>
+        <p class="text-xs text-slate-400 mb-4">Choose a frontend template for the whole dashboard. Only administrators can change the look. The selection is saved in this browser.</p>
+        <div id="theme-grid" class="theme-grid"></div>
+        <p class="text-xs text-slate-500 mt-4">Tip: themes change colours, accents and contrast. Functional layout stays the same so muscle memory is preserved.</p>
       </div>
+
+            <!-- User Manual – permission-aware complete guide -->
+      <div id="panel-manual" class="card rounded-xl p-5 hidden">
+        <h2 class="text-lg font-semibold mb-1">User Manual</h2>
+        <p class="text-xs text-slate-400 mb-4">Complete guide to every feature. Sections adapt to your permissions — you only see what you are allowed to use.</p>
+        <div id="manual-content" class="space-y-2"></div>
+      </div>
+
 
       <!-- Output -->
       <div class="card rounded-xl p-5">
@@ -728,7 +862,7 @@
     }
 
     function showTab(name) {
-      ['ports', 'topology', 'traceroute', 'monitor', 'scanner', 'config', 'vlan', 'interface', 'sshsetup', 'routing', 'users', 'reboot', 'recovery', 'templates', 'manual'].forEach(t => {
+      ['ports', 'topology', 'traceroute', 'monitor', 'scanner', 'config', 'vlan', 'interface', 'sshsetup', 'routing', 'users', 'reboot', 'recovery', 'templates', 'manual', 'themes'].forEach(t => {
         document.getElementById(`panel-${t}`).classList.add('hidden');
         document.getElementById(`tab-${t}`).classList.remove('tab-active');
       });
@@ -1220,12 +1354,16 @@
 
     // Load templates
     // ---------- Switch Monitor (saved IPs + continuous ping + alerts) ----------
-    const MONITOR_KEY = 'ali_hamza_monitor_hosts';
-    let monitorTimer = null;
+
+    // ---------- Switch Monitor (with uptime / downtime / total downtime) ----------
+    const MONITOR_KEY = 'cisco_dash_monitor_hosts';
+    const MONITOR_STATS_KEY = 'cisco_dash_monitor_stats';
     let monitorRunning = false;
-    let monitorBusy = false;   // stops ticks stacking up when pings take longer than the interval
-    let lastAlive = {};        // ip -> last observed state (undefined = not checked yet)
-    let monitorStatus = {};    // ip -> { status: 'up'|'down', rtt }  (runtime only, never saved)
+    let monitorTimer = null;
+    let monitorBusy = false;
+    let monitorStatus = {};   // ip -> { status, rtt }
+    // stats[ip] = { status, since, totalUpMs, totalDownMs, lastChange, checks, fails }
+    let monitorStats = {};
 
     function loadMonitorHosts() {
       try { return JSON.parse(localStorage.getItem(MONITOR_KEY) || '[]'); }
@@ -1234,34 +1372,133 @@
     function saveMonitorHosts(list) {
       localStorage.setItem(MONITOR_KEY, JSON.stringify(list));
     }
+    function loadMonitorStats() {
+      try { monitorStats = JSON.parse(localStorage.getItem(MONITOR_STATS_KEY) || '{}'); }
+      catch { monitorStats = {}; }
+    }
+    function saveMonitorStats() {
+      localStorage.setItem(MONITOR_STATS_KEY, JSON.stringify(monitorStats));
+    }
+    function ensureStat(ip) {
+      if (!monitorStats[ip]) {
+        monitorStats[ip] = { status: 'unknown', since: Date.now(), totalUpMs: 0, totalDownMs: 0, lastChange: Date.now(), checks: 0, fails: 0 };
+      }
+      return monitorStats[ip];
+    }
+    function formatDuration(ms) {
+      if (ms == null || ms < 0 || !isFinite(ms)) return '—';
+      const s = Math.floor(ms / 1000);
+      if (s < 60) return s + 's';
+      const m = Math.floor(s / 60);
+      if (m < 60) return m + 'm ' + (s % 60) + 's';
+      const h = Math.floor(m / 60);
+      if (h < 48) return h + 'h ' + (m % 60) + 'm';
+      const d = Math.floor(h / 24);
+      return d + 'd ' + (h % 24) + 'h';
+    }
+    function currentStretch(st) {
+      return Date.now() - (st.since || Date.now());
+    }
+    function updateStatOnPing(ip, isUp) {
+      const st = ensureStat(ip);
+      const now = Date.now();
+      st.checks = (st.checks || 0) + 1;
+      if (!isUp) st.fails = (st.fails || 0) + 1;
+      const prev = st.status;
+      if (prev === 'up' || prev === 'down') {
+        const elapsed = now - st.since;
+        if (prev === 'up') st.totalUpMs = (st.totalUpMs || 0) + elapsed;
+        else st.totalDownMs = (st.totalDownMs || 0) + elapsed;
+      }
+      if (prev !== (isUp ? 'up' : 'down')) {
+        st.status = isUp ? 'up' : 'down';
+        st.since = now;
+        st.lastChange = now;
+      } else {
+        st.status = isUp ? 'up' : 'down';
+      }
+      saveMonitorStats();
+    }
 
     function renderMonitorList() {
       const list = loadMonitorHosts();
       const el = document.getElementById('monitor-list');
+      const summary = document.getElementById('monitor-summary');
       if (!list.length) {
         el.innerHTML = '<p class="text-slate-500 text-sm">No switches saved yet. Add an IP above.</p>';
+        if (summary) summary.innerHTML = '';
         return;
       }
+      let upN = 0, downN = 0, unkN = 0;
+      let totalDownAll = 0, totalUpAll = 0;
       el.innerHTML = list.map((h, i) => {
         const s = monitorStatus[h.ip] || {};
-        const st = s.status || 'unknown';
-        const color = st === 'up' ? 'text-emerald-400' : (st === 'down' ? 'text-red-400' : 'text-slate-400');
-        const dot = st === 'up' ? 'bg-emerald-400' : (st === 'down' ? 'bg-red-500 animate-pulse' : 'bg-slate-500');
+        const st = ensureStat(h.ip);
+        const status = s.status || st.status || 'unknown';
+        if (status === 'up') upN++; else if (status === 'down') downN++; else unkN++;
+        const color = status === 'up' ? 'text-emerald-400' : (status === 'down' ? 'text-red-400' : 'text-slate-400');
+        const dot = status === 'up' ? 'bg-emerald-400' : (status === 'down' ? 'bg-red-500 animate-pulse' : 'bg-slate-500');
         const rtt = s.rtt != null ? s.rtt + ' ms' : '—';
-        return `<div class="flex items-center justify-between bg-slate-800/80 rounded-lg px-3 py-2 border border-slate-700">
-          <div class="flex items-center gap-2 min-w-0">
-            <span class="w-2.5 h-2.5 rounded-full ${dot}"></span>
-            <div class="min-w-0">
-              <div class="text-sm font-medium truncate">${h.name || h.ip}</div>
-              <div class="text-[10px] text-slate-400">${h.ip} · <span class="${color}">${st.toUpperCase()}</span> · ${rtt}</div>
+        // live stretch
+        let curUp = '—', curDown = '—';
+        if (status === 'up') {
+          curUp = formatDuration(currentStretch(st));
+          totalUpAll += (st.totalUpMs || 0) + currentStretch(st);
+          totalDownAll += (st.totalDownMs || 0);
+        } else if (status === 'down') {
+          curDown = formatDuration(currentStretch(st));
+          totalDownAll += (st.totalDownMs || 0) + currentStretch(st);
+          totalUpAll += (st.totalUpMs || 0);
+        } else {
+          totalUpAll += (st.totalUpMs || 0);
+          totalDownAll += (st.totalDownMs || 0);
+        }
+        const totalDown = formatDuration(
+          (st.totalDownMs || 0) + (status === 'down' ? currentStretch(st) : 0)
+        );
+        const totalUp = formatDuration(
+          (st.totalUpMs || 0) + (status === 'up' ? currentStretch(st) : 0)
+        );
+        const avail = (() => {
+          const u = (st.totalUpMs || 0) + (status === 'up' ? currentStretch(st) : 0);
+          const d = (st.totalDownMs || 0) + (status === 'down' ? currentStretch(st) : 0);
+          const t = u + d;
+          if (t < 1000) return '—';
+          return ((u / t) * 100).toFixed(1) + '%';
+        })();
+        return `<div class="bg-slate-800/80 rounded-lg px-3 py-2.5 border border-slate-700">
+          <div class="flex items-center justify-between gap-2">
+            <div class="flex items-center gap-2 min-w-0">
+              <span class="w-2.5 h-2.5 rounded-full ${dot} shrink-0"></span>
+              <div class="min-w-0">
+                <div class="text-sm font-medium truncate">${esc(h.name || h.ip)}</div>
+                <div class="text-[10px] text-slate-400">${esc(h.ip)} · <span class="${color}">${status.toUpperCase()}</span> · RTT ${rtt}</div>
+              </div>
+            </div>
+            <div class="flex gap-2 shrink-0">
+              <button onclick="useMonitorHost('${h.ip}')" class="text-[10px] bg-slate-700 hover:bg-slate-600 px-2 py-1 rounded">Use</button>
+              <button onclick="removeMonitorHost(${i})" class="text-[10px] text-red-400 hover:text-red-300 px-2 py-1">✕</button>
             </div>
           </div>
-          <div class="flex gap-2 shrink-0">
-            <button onclick="useMonitorHost('${h.ip}')" class="text-[10px] bg-slate-700 hover:bg-slate-600 px-2 py-1 rounded">Use</button>
-            <button onclick="removeMonitorHost(${i})" class="text-[10px] text-red-400 hover:text-red-300 px-2 py-1">✕</button>
+          <div class="flex flex-wrap gap-1.5 mt-2">
+            <span class="mon-stat" title="How long the device has been continuously UP"><span class="lbl">Uptime</span> <span class="val text-emerald-400">${curUp}</span></span>
+            <span class="mon-stat" title="How long the device has been continuously DOWN"><span class="lbl">Downtime</span> <span class="val text-red-400">${curDown}</span></span>
+            <span class="mon-stat" title="Cumulative time spent DOWN since stats began"><span class="lbl">Total down</span> <span class="val text-amber-400">${totalDown}</span></span>
+            <span class="mon-stat" title="Cumulative time spent UP since stats began"><span class="lbl">Total up</span> <span class="val">${totalUp}</span></span>
+            <span class="mon-stat" title="Availability = total up / (total up + total down)"><span class="lbl">Avail</span> <span class="val">${avail}</span></span>
           </div>
         </div>`;
       }).join('');
+      if (summary) {
+        summary.innerHTML = `
+          <span class="mon-stat"><span class="lbl">Devices</span> <span class="val">${list.length}</span></span>
+          <span class="mon-stat"><span class="lbl">Up</span> <span class="val text-emerald-400">${upN}</span></span>
+          <span class="mon-stat"><span class="lbl">Down</span> <span class="val text-red-400">${downN}</span></span>
+          <span class="mon-stat"><span class="lbl">Unknown</span> <span class="val">${unkN}</span></span>
+          <span class="mon-stat"><span class="lbl">Σ total down</span> <span class="val text-amber-400">${formatDuration(totalDownAll)}</span></span>
+          <span class="mon-stat"><span class="lbl">Σ total up</span> <span class="val text-emerald-400">${formatDuration(totalUpAll)}</span></span>
+        `;
+      }
     }
 
     function addMonitorHost() {
@@ -1272,6 +1509,8 @@
       if (list.some(h => h.ip === ip)) { alert('Already saved'); return; }
       list.push({ ip, name: name || ip });
       saveMonitorHosts(list);
+      ensureStat(ip);
+      saveMonitorStats();
       document.getElementById('monitor-ip').value = '';
       document.getElementById('monitor-name').value = '';
       renderMonitorList();
@@ -1280,87 +1519,97 @@
     function removeMonitorHost(i) {
       const list = loadMonitorHosts();
       const [gone] = list.splice(i, 1);
-      if (gone) { delete monitorStatus[gone.ip]; delete lastAlive[gone.ip]; }
+      if (gone) {
+        delete monitorStatus[gone.ip];
+        // keep historical stats unless user resets
+      }
       saveMonitorHosts(list);
       renderMonitorList();
     }
 
     function useMonitorHost(ip) {
-      document.getElementById('host').value = ip;
-      setOutput('Loaded ' + ip + ' into connection form');
+      const hostEl = document.getElementById('host');
+      if (hostEl) hostEl.value = ip;
+      setOutput('Host field set to ' + ip);
     }
 
-    let PING_TIMEOUT_MS = 12000;   // a hung request must never freeze the monitor
-    async function pingOne(ip) {
-      const ctl = new AbortController(), timer = setTimeout(() => ctl.abort(), PING_TIMEOUT_MS);
+    function resetMonitorStats() {
+      if (!confirm('Reset all uptime / downtime counters for every monitored device?')) return;
+      monitorStats = {};
+      loadMonitorHosts().forEach(h => ensureStat(h.ip));
+      saveMonitorStats();
+      renderMonitorList();
+      setOutput('Monitor stats reset.');
+    }
+
+    let PING_TIMEOUT_MS = 12000;
+
+    async function pingHost(ip) {
+      const controller = new AbortController();
+      const t = setTimeout(() => controller.abort(), PING_TIMEOUT_MS);
       try {
         const res = await fetch('/api/ping', {
           method: 'POST',
           headers: { 'Content-Type': 'application/json' },
-          body: JSON.stringify({ target: ip, count: 1 }),   // no reverse-DNS: keeps each tick fast
-          signal: ctl.signal
+          body: JSON.stringify({ target: ip, count: 1 }),
+          signal: controller.signal
         });
-        if (!res.ok) throw new Error('HTTP ' + res.status);
-        return await res.json();
+        const data = await res.json();
+        clearTimeout(t);
+        if (data.success && data.alive) return { ok: true, rtt_ms: data.rtt_ms ?? data.avg_ms ?? null };
+        return { ok: false, rtt_ms: null };
       } catch (e) {
-        // The dashboard server was unreachable or slow: says nothing about the switch.
-        return { alive: false, error: e.message, rtt_ms: null, serverError: true };
-      } finally { clearTimeout(timer); }
+        clearTimeout(t);
+        return { ok: false, rtt_ms: null };
+      }
     }
 
-    // The header badge must follow the CURRENT state: red while anything is down, green again once it recovers.
     function updateMonitorBadge() {
       const badge = document.getElementById('monitor-badge');
-      const down = loadMonitorHosts().filter(h => (monitorStatus[h.ip] || {}).status === 'down');
+      if (!badge) return;
+      if (!monitorRunning) {
+        badge.classList.add('hidden');
+        return;
+      }
       badge.classList.remove('hidden');
+      const down = loadMonitorHosts().filter(h => (monitorStatus[h.ip] || {}).status === 'down');
       if (down.length) {
-        badge.textContent = '⚠ DOWN: ' + down.map(h => h.name || h.ip).join(', ');
-        badge.className = 'text-xs px-2 py-1 rounded-full bg-red-900/80 text-red-200 border border-red-600';
+        badge.className = 'text-xs px-2 py-1 rounded-full bg-red-900/50 text-red-300 border border-red-700';
+        badge.textContent = '● Monitor · ' + down.length + ' DOWN';
       } else {
-        badge.textContent = '● Monitor ON · all up';
         badge.className = 'text-xs px-2 py-1 rounded-full bg-emerald-900/50 text-emerald-300 border border-emerald-700';
+        badge.textContent = '● Monitor ON · all up';
       }
     }
 
     function notifyDown(name, ip) {
       if (!document.getElementById('monitor-alerts').checked) return;
-      const msg = `ALERT: ${name || ip} (${ip}) is DOWN`;
-      setOutput(msg, true);
-      if (window.Notification && Notification.permission === 'granted') {
-        new Notification('Ali Hamza · Switch Down', { body: msg });
-      } else if (window.Notification && Notification.permission !== 'denied') {
-        Notification.requestPermission().then(p => {
-          if (p === 'granted') new Notification('Ali Hamza · Switch Down', { body: msg });
-        });
-      }
-      // Visual flash on badge
-      const badge = document.getElementById('monitor-badge');
-      badge.classList.remove('hidden');
-      badge.textContent = '⚠ DOWN: ' + (name || ip);
-      badge.className = 'text-xs px-2 py-1 rounded-full bg-red-900/80 text-red-200 border border-red-600';
+      try {
+        if (Notification.permission === 'granted') {
+          new Notification('Switch down', { body: (name || ip) + ' (' + ip + ') is not responding' });
+        } else if (Notification.permission !== 'denied') {
+          Notification.requestPermission();
+        }
+      } catch (e) { /* ignore */ }
+      try { if (navigator.vibrate) navigator.vibrate([200, 100, 200]); } catch (e) {}
     }
 
     async function monitorTick() {
-      if (monitorBusy) return;           // previous round still running
+      if (monitorBusy) return;
       monitorBusy = true;
       try {
         const list = loadMonitorHosts();
-        // Ping every switch IN PARALLEL (was one-by-one, so N dead hosts = N x timeout)
-        const results = await Promise.all(list.map(h => pingOne(h.ip)));
-        if (!monitorRunning) return;     // user pressed Stop while we were pinging
-        list.forEach((h, i) => {
-          const r = results[i];
-          if (r.serverError) return;     // don't mark switches down because OUR server hiccuped
-          const now = !!r.alive;
-          const was = lastAlive[h.ip];   // undefined on the very first check
+        if (!list.length) return;
+        if (!monitorRunning) return;
+        await Promise.all(list.map(async h => {
+          const r = await pingHost(h.ip);
+          const now = r.ok;
+          const prev = (monitorStatus[h.ip] || {}).status;
           monitorStatus[h.ip] = { status: now ? 'up' : 'down', rtt: r.rtt_ms };
-          // Alert on ANY switch that is down and wasn't already known-down.
-          // (Before: only up->down was caught, so a switch that was already
-          //  dead when you pressed Start never alerted.)
-          if (!now && was !== false) notifyDown(h.name, h.ip);
-          if (now && was === false) setOutput(`${h.name || h.ip} (${h.ip}) is back UP`);
-          lastAlive[h.ip] = now;
-        });
+          updateStatOnPing(h.ip, now);
+          if (prev === 'up' && !now) notifyDown(h.name, h.ip);
+        }));
+        if (!monitorRunning) return;
         renderMonitorList();
         updateMonitorBadge();
       } finally {
@@ -1370,151 +1619,296 @@
 
     function toggleMonitor() {
       const btn = document.getElementById('btn-monitor-toggle');
-      const badge = document.getElementById('monitor-badge');
       if (monitorRunning) {
-        clearInterval(monitorTimer);
-        monitorTimer = null;
         monitorRunning = false;
-        lastAlive = {};                  // so the next Start alerts about anything still down
-        monitorStatus = {};
-        renderMonitorList();
+        if (monitorTimer) { clearInterval(monitorTimer); monitorTimer = null; }
         btn.textContent = 'Start Monitor';
         btn.className = 'bg-emerald-700 hover:bg-emerald-600 px-4 py-2 rounded-lg text-sm text-white';
-        badge.classList.add('hidden');
-        setOutput('Monitor stopped');
+        updateMonitorBadge();
+        setOutput('Monitor stopped.');
         return;
-      }
-      if (!loadMonitorHosts().length) { alert('Add at least one switch IP first'); return; }
-      if (window.Notification && Notification.permission === 'default') {
-        Notification.requestPermission();
       }
       monitorRunning = true;
       btn.textContent = 'Stop Monitor';
       btn.className = 'bg-red-700 hover:bg-red-600 px-4 py-2 rounded-lg text-sm text-white';
-      badge.classList.remove('hidden');
-      badge.textContent = '● Monitor ON';
-      badge.className = 'text-xs px-2 py-1 rounded-full bg-emerald-900/50 text-emerald-300 border border-emerald-700';
-      const sec = parseInt(document.getElementById('monitor-interval').value) || 10;
+      const sec = parseInt(document.getElementById('monitor-interval').value, 10) || 10;
       monitorTick();
       monitorTimer = setInterval(monitorTick, sec * 1000);
-      setOutput('Monitor started (every ' + sec + 's)');
+      updateMonitorBadge();
+      setOutput('Monitor started (interval ' + sec + 's).');
+      try { if (Notification.permission === 'default') Notification.requestPermission(); } catch (e) {}
     }
 
-    // ---------- SSH setup over console ----------
-    function sshSetupBody() {
-      const c = getCreds();
-      if (c.connection_type !== 'console') { alert('Switch Connection type to Console first.'); return null; }
-      if (!c.serial_port) { alert('Enter the serial port, e.g. COM3'); return null; }
-      const v = id => document.getElementById(id).value.trim();
-      return {
-        ...c,
-        hostname: v('ssh-hostname') || null,
-        domain: v('ssh-domain'),
-        ssh_user: v('ssh-user'),
-        ssh_password: document.getElementById('ssh-pass').value,
-        enable_secret: document.getElementById('ssh-enable').value || null,
-        key_bits: parseInt(document.getElementById('ssh-bits').value),
-        mgmt_interface: v('ssh-mgmt-if') || null,
-        mgmt_ip: v('ssh-mgmt-ip') || null,
-        mgmt_mask: v('ssh-mgmt-mask') || null,
-        gateway: v('ssh-gw') || null,
-        save: document.getElementById('ssh-save').checked
-      };
-    }
+    // Keep duration displays fresh even between pings
+    setInterval(() => { if (document.getElementById('panel-monitor') && !document.getElementById('panel-monitor').classList.contains('hidden')) renderMonitorList(); }, 1000);
 
-    function showSshPreview(cmds) {
-      const box = document.getElementById('ssh-preview');
-      box.textContent = cmds.join('\n');
-      box.classList.remove('hidden');
-    }
-
-    async function previewSshSetup() {
-      const body = sshSetupBody();
-      if (!body) return;
-      try {
-        const res = await fetch('/api/ssh-setup/preview', { method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify(body) });
-        const data = await res.json();
-        if (!data.success) { setOutput(data.error, true); return; }
-        showSshPreview(data.commands);
-        setOutput('Preview only – nothing was sent to the switch.');
-      } catch (e) { setOutput('Error: ' + e.message, true); }
-    }
-
-    async function applySshSetup() {
-      const body = sshSetupBody();
-      if (!body) return;
-      if (!confirm(`Enable SSH on the switch at ${body.serial_port}?\nThis creates RSA keys and changes the VTY lines to SSH-only.`)) return;
-      setOutput('Configuring SSH over console… RSA key generation can take up to a minute.');
-      try {
-        const res = await fetch('/api/ssh-setup', { method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify(body) });
-        const data = await res.json();
-        if (data.commands) showSshPreview(data.commands);
-        if (!data.success) { setOutput(data.error, true); return; }
-        setOutput(`${data.message}\n${data.saved ? 'Saved to startup-config.' : 'Not saved to startup-config.'}\n\n--- show ip ssh ---\n${data.ssh_status}`);
-      } catch (e) { setOutput('Error: ' + e.message, true); }
-    }
-
-    // ---------- IP Scanner ----------
-    async function runIpScan() {
-      const subnet = document.getElementById('scan-subnet').value.trim();
-      if (!subnet) { alert('Enter subnet e.g. 192.168.4.0/24 or 192.168.4.1-50'); return; }
-      const status = document.getElementById('scan-status');
-      const results = document.getElementById('scan-results');
-      status.textContent = 'Scanning ' + subnet + ' (please wait)...';
-      results.innerHTML = '';
-      setOutput('IP scan started: ' + subnet);
-      try {
-        const res = await fetch('/api/scan', {
-          method: 'POST',
-          headers: { 'Content-Type': 'application/json' },
-          body: JSON.stringify({ subnet, timeout: 1.0 })
-        });
-        const data = await res.json();
-        if (!data.success) {
-          status.textContent = data.error || 'Scan failed';
-          setOutput(data.error || 'Scan failed', true);
-          return;
-        }
-        status.innerHTML = `Scanned <b>${data.scanned}</b> · Alive <span class="text-emerald-400">${data.alive_count}</span> · No reply ${data.dead_count}` +
-          (data.truncated ? ` · <span class="text-amber-400">⚠ range has ${data.total_hosts.toLocaleString()} hosts – only the first ${data.max_hosts} were scanned. Use a /24 or an explicit range.</span>` : '');
-        if (!data.alive.length) {
-          results.innerHTML = '<p class="text-slate-500">No hosts responded.</p>';
-        } else {
-          results.innerHTML = `<p class="text-[10px] text-slate-500 mb-2">Device type is a guess from TTL/hostname (not 100% accurate).</p>
-            <table class="w-full text-left"><thead><tr class="text-slate-400 border-b border-slate-700">
-            <th class="py-1">IP</th><th>Type</th><th>TTL</th><th>RTT</th><th></th></tr></thead><tbody>` +
-            data.alive.map(a => {
-              const label = a.device_label || 'Unknown';
-              const cls = a.device_class || '';
-              const color = cls.includes('pc') ? 'text-sky-300' : (cls.includes('mobile') ? 'text-amber-300' : (cls.includes('network') ? 'text-violet-300' : 'text-slate-300'));
-              return `<tr class="border-b border-slate-800">
-              <td class="py-1 text-emerald-300">${a.target}${a.hostname ? '<div class="text-[10px] text-slate-500">'+a.hostname+'</div>' : ''}</td>
-              <td class="${color}">${label}</td>
-              <td>${a.ttl != null ? a.ttl : '—'}</td>
-              <td>${a.rtt_ms != null ? a.rtt_ms + ' ms' : '—'}</td>
-              <td><button onclick="addScanToMonitor('${a.target}')" class="text-[10px] bg-slate-700 hover:bg-slate-600 px-2 py-0.5 rounded">+ Monitor</button>
-              <button onclick="useMonitorHost('${a.target}')" class="text-[10px] bg-slate-700 hover:bg-slate-600 px-2 py-0.5 rounded ml-1">Use</button></td>
-            </tr>`;
-            }).join('') + '</tbody></table>';
-        }
-        setOutput(`Scan done: ${data.alive_count} alive / ${data.scanned} scanned`);
-      } catch (e) {
-        status.textContent = e.message;
-        setOutput('Scan error: ' + e.message, true);
-      }
-    }
-
-    function addScanToMonitor(ip) {
-      const list = loadMonitorHosts();
-      if (list.some(h => h.ip === ip)) { setOutput(ip + ' already in monitor'); return; }
-      list.push({ ip, name: ip });
-      saveMonitorHosts(list);
-      renderMonitorList();
-      setOutput('Added ' + ip + ' to monitor list');
-    }
-
-    // init monitor list on load
+    loadMonitorStats();
     renderMonitorList();
+
+
+    // ---------- Themes (admin only) ----------
+    const THEMES = [
+      { id: 'ocean',     name: 'Ocean',     desc: 'Default teal / cyan',   colors: ['#0a1519','#22c7e6','#34d399','#12252b'] },
+      { id: 'midnight',  name: 'Midnight',  desc: 'Deep indigo night',     colors: ['#0b0f1a','#6366f1','#34d399','#141b2d'] },
+      { id: 'forest',    name: 'Forest',    desc: 'Emerald green',         colors: ['#0a1410','#34d399','#4ade80','#12241c'] },
+      { id: 'sunset',    name: 'Sunset',    desc: 'Warm orange glow',      colors: ['#1a0f0a','#f97316','#34d399','#2b1a12'] },
+      { id: 'slate',     name: 'Slate',     desc: 'Neutral grey',          colors: ['#0f1115','#94a3b8','#34d399','#1a1d24'] },
+      { id: 'rose',      name: 'Rose',      desc: 'Pink accent',           colors: ['#150a12','#ec4899','#34d399','#24121f'] },
+      { id: 'arctic',    name: 'Arctic',    desc: 'Cool sky blue',         colors: ['#0a1219','#38bdf8','#34d399','#12202b'] },
+      { id: 'ember',     name: 'Ember',     desc: 'Red heat',              colors: ['#1a0c0c','#ef4444','#34d399','#2b1414'] },
+      { id: 'violet',    name: 'Violet',    desc: 'Purple neon',           colors: ['#0f0a1a','#a78bfa','#34d399','#1c122b'] },
+      { id: 'graphite',  name: 'Graphite',  desc: 'Dark + gold',           colors: ['#111111','#eab308','#34d399','#1c1c1c'] },
+      { id: 'teal',      name: 'Teal',      desc: 'Fresh teal',            colors: ['#0a1514','#2dd4bf','#34d399','#122523'] },
+      { id: 'indigo',    name: 'Indigo',    desc: 'Soft indigo',           colors: ['#0a0e1a','#818cf8','#34d399','#12182b'] },
+      { id: 'sand',      name: 'Sand',      desc: 'Warm sand / gold',      colors: ['#16140f','#d4a017','#34d399','#24201a'] },
+      { id: 'cyber',     name: 'Cyber',     desc: 'Neon cyberpunk',        colors: ['#050a0a','#00ffc8','#00ff9d','#0a1818'] },
+      { id: 'nord',      name: 'Nord',      desc: 'Nordic cool palette',   colors: ['#2e3440','#88c0d0','#a3be8c','#3b4252'] },
+      { id: 'dracula',   name: 'Dracula',   desc: 'Classic Dracula',       colors: ['#282a36','#bd93f9','#50fa7b','#343746'] },
+      { id: 'light',     name: 'Light',     desc: 'Clean light mode',      colors: ['#f4f7f9','#0ea5e9','#059669','#ffffff'] },
+    ];
+    const THEME_KEY = 'cisco_dash_theme';
+
+    function applyTheme(id) {
+      const t = THEMES.find(x => x.id === id) || THEMES[0];
+      if (t.id === 'ocean') document.documentElement.removeAttribute('data-theme');
+      else document.documentElement.setAttribute('data-theme', t.id);
+      localStorage.setItem(THEME_KEY, t.id);
+      document.querySelectorAll('.theme-card').forEach(c => c.classList.toggle('active', c.dataset.theme === t.id));
+    }
+
+    function initThemes(isAdmin) {
+      const saved = localStorage.getItem(THEME_KEY) || 'ocean';
+      applyTheme(saved);
+      const grid = document.getElementById('theme-grid');
+      if (!grid) return;
+      if (!isAdmin) {
+        grid.innerHTML = '<p class="text-slate-400 text-sm">Only administrators can change the dashboard appearance.</p>';
+        return;
+      }
+      grid.innerHTML = THEMES.map(t => `
+        <div class="theme-card ${t.id === saved ? 'active' : ''}" data-theme="${t.id}" onclick="applyTheme('${t.id}')">
+          <div class="theme-swatch">${t.colors.map(c => `<span style="background:${c}"></span>`).join('')}</div>
+          <div class="tname">${t.name}</div>
+          <div class="tdesc">${t.desc}</div>
+        </div>`).join('');
+    }
+
+    // ---------- Permission-aware User Manual ----------
+    function renderManual(me) {
+      const el = document.getElementById('manual-content');
+      if (!el) return;
+      const perms = new Set(me.permissions || []);
+      const isAdmin = me.role === 'admin';
+      const can = (p) => isAdmin || perms.has(p);
+
+      function shot(title, body) {
+        return `<div class="manual-shot"><div class="ms-bar"><span class="ms-dot" style="background:#f87171"></span><span class="ms-dot" style="background:#fbbf24"></span><span class="ms-dot" style="background:#34d399"></span><span>${title}</span></div><div class="ms-body">${body}</div></div>`;
+      }
+      function sec(id, title, perm, html) {
+        if (perm && !can(perm) && perm !== 'any') return '';
+        const badge = perm && perm !== 'any' ? `<span class="perm-badge">${perm}</span>` : '';
+        return `<div class="manual-section" data-manual-perm="${perm || 'any'}"><h3>${title}${badge}</h3>${html}</div>`;
+      }
+
+      let html = '';
+
+      html += sec('intro', '1. Introduction', 'any', `
+        <p><strong>Ali Hamza Cisco Networking Dashboard</strong> is a web (and optional desktop) GUI for managing Cisco IOS / IOS-XE switches over SSH or a serial console cable.</p>
+        <p>You sign in with a username and password. An administrator assigns each user a set of <em>permissions</em>. Menu items and API calls you are not allowed to use are hidden or blocked.</p>
+        <h4>Signing in</h4>
+        <ol>
+          <li>Open the dashboard URL (or the desktop app).</li>
+          <li>Enter your username and password on the login page.</li>
+          <li>After login you land on the Port Map. Your name and role appear in the top-right chip.</li>
+        </ol>
+        ${shot('Login page', '<strong>Username</strong> and <strong>Password</strong> fields · Sign in button · First-run admin password is in <code>data/first_run_credentials.txt</code>')}
+        <h4>Your permissions</h4>
+        <p>Your current role is <strong>${esc(me.role)}</strong>. Permissions granted to you:</p>
+        <ul>${[...perms].map(p => `<li><code>${p}</code> — ${(me.catalog && me.catalog[p]) || ''}</li>`).join('') || '<li>(none beyond admin defaults)</li>'}</ul>
+      `);
+
+      html += sec('connect', '2. Connecting to a switch', 'view', `
+        <p>In the left sidebar fill in connection details, then click <strong>Test connection</strong>.</p>
+        <h4>SSH (network)</h4>
+        <ul>
+          <li><strong>Host</strong> — IP or hostname of the switch</li>
+          <li><strong>Username / Password</strong> — device credentials (not your dashboard login)</li>
+          <li><strong>Enable secret</strong> — optional privilege-mode password</li>
+          <li><strong>Port</strong> — default 22</li>
+        </ul>
+        <h4>Console (serial)</h4>
+        <ul>
+          <li>Choose connection type <strong>Console</strong></li>
+          <li>Select the serial port (COM3, /dev/ttyUSB0, …) or type it</li>
+          <li>Set baud rate (usually 9600)</li>
+          <li>Console is required for SSH Setup and Bootloader / Recovery</li>
+        </ul>
+        ${shot('Connection panel', 'Host · User · Password · Enable · Connection type (SSH / Console) · <strong>Test connection</strong> → status chip turns green with hostname')}
+        <p>On success the header shows <span class="text-emerald-400">● Connected · hostname</span>. All subsequent tools use these credentials until you change them.</p>
+      `);
+
+      html += sec('ports', '3. Port Map', 'view', `
+        <p>Graphical view of every switch interface. Trunks are highlighted. Click a port tile for MAC / IP detail.</p>
+        <ul>
+          <li>Green / cyan tiles = up links</li>
+          <li>Grey tiles = administratively or operationally down</li>
+          <li>Blue accent = trunk ports</li>
+          <li>Click a tile → detail drawer (status, speed, VLAN, MAC table entries)</li>
+        </ul>
+        ${shot('Port Map', 'Grid of port tiles · colour = state · click opens detail with MAC/IP table')}
+      `);
+
+      html += sec('topology', '4. Network Topology', 'view', `
+        <p>Interactive CDP/LLDP neighbour map drawn with vis-network.</p>
+        <ul>
+          <li>Click <strong>Load topology</strong> after connecting</li>
+          <li>Drag nodes to rearrange; scroll to zoom</li>
+          <li>Edges show the local interface toward each neighbour</li>
+        </ul>
+        ${shot('Topology', 'Canvas with switch nodes and labelled links · Load topology button')}
+      `);
+
+      html += sec('traceroute', '5. Track Route (Traceroute)', 'diagnostics', `
+        <p>Runs traceroute from the switch toward a destination and draws a hop map.</p>
+        <ul>
+          <li>Enter destination IP or hostname</li>
+          <li>Blue = start, green = hop, grey = timeout, violet = destination</li>
+          <li>Requires the <code>diagnostics</code> permission</li>
+        </ul>
+        ${shot('Track Route', 'Destination field · Run · coloured hop strip + raw output')}
+      `);
+
+      html += sec('monitor', '6. Switch Monitor (uptime / downtime)', 'diagnostics', `
+        <p>Continuously pings a list of switch IPs stored in this browser. Tracks live and cumulative availability.</p>
+        <h4>Adding devices</h4>
+        <ol>
+          <li>Type an IP (and optional friendly name) → <strong>Add</strong></li>
+          <li>Choose interval (5 / 10 / 30 / 60 seconds)</li>
+          <li>Optionally enable browser alerts on disconnect</li>
+          <li>Click <strong>Start Monitor</strong></li>
+        </ol>
+        <h4>Metrics shown for every device</h4>
+        <ul>
+          <li><strong>Uptime</strong> — how long the device has been continuously UP</li>
+          <li><strong>Downtime</strong> — how long it has been continuously DOWN</li>
+          <li><strong>Total down</strong> — cumulative time spent DOWN since stats started</li>
+          <li><strong>Total up</strong> — cumulative time spent UP</li>
+          <li><strong>Avail</strong> — availability percentage = total up / (total up + total down)</li>
+        </ul>
+        <p>A summary row shows device counts and the sum of total up / total down across all hosts. Use <strong>Reset stats</strong> to clear counters. Stats and the host list survive page reloads (localStorage).</p>
+        ${shot('Switch Monitor', 'IP + Name inputs · Start/Stop · interval · list of devices with Uptime / Downtime / Total down / Total up / Avail chips · summary bar')}
+      `);
+
+      html += sec('scanner', '7. IP Scanner', 'diagnostics', `
+        <p>Ping-scans a subnet or explicit range and lists live hosts.</p>
+        <ul>
+          <li>Examples: <code>192.168.4.0/24</code> or <code>192.168.4.1-50</code></li>
+          <li>Large ranges are capped for safety; prefer a /24 or a tight range</li>
+          <li>Click a result to copy or use as connection host</li>
+        </ul>
+        ${shot('IP Scanner', 'Subnet field · Scan · results table with alive hosts')}
+      `);
+
+      html += sec('config', '8. Config Push', 'config', `
+        <p>Send multi-line CLI configuration to the switch and optionally save.</p>
+        <ol>
+          <li>Paste or type commands (one per line, no leading <code>configure terminal</code> needed — the tool enters config mode)</li>
+          <li>Review the preview</li>
+          <li>Click <strong>Apply</strong> · optionally <strong>Save</strong> to startup-config</li>
+        </ol>
+        ${shot('Config Push', 'Large text area · Apply / Save buttons · output pane shows switch responses')}
+      `);
+
+      html += sec('templates', '9. Templates', 'view', `
+        <p>Two kinds of templates:</p>
+        <ul>
+          <li><strong>Whole-switch templates</strong> — access, distribution/L3, branch, lab, secure baseline. Fill parameters then push.</li>
+          <li><strong>Command snippets</strong> — 40+ parameterised snippets for VLAN, interface, switching, routing, security, system.</li>
+        </ul>
+        <p>Fill the fields, preview the generated commands, then apply (requires <code>config</code> permission to actually push).</p>
+        ${shot('Templates', 'Segment control (Switch / Snippets) · tile grid · parameter form · Preview / Apply')}
+      `);
+
+      html += sec('vlan', '10. VLAN & Interface helpers', 'config', `
+        <p>Quick forms to create VLANs, assign access/trunk mode, set descriptions, shut/no shut interfaces without writing raw CLI.</p>
+        ${shot('VLAN / Interface', 'VLAN ID · name · interface list · mode (access/trunk) · Apply')}
+      `);
+
+      html += sec('routing', '11. Routing', 'view', `
+        <p>View the parsed routing table, a visual route map, and (with <code>config</code>) add/remove static routes, default route, or OSPF network statements.</p>
+        <ul>
+          <li>Route table — searchable, colour-coded by protocol</li>
+          <li>Routing terminal — free-form show / config helpers</li>
+          <li>Static route form — prefix, mask, next-hop</li>
+        </ul>
+        ${shot('Routing', 'Tabs: Table · Map · Terminal · Static / OSPF forms')}
+      `);
+
+      html += sec('backup', '12. Backup running-config', 'backup', `
+        <p>Downloads the current running-config as a text file to your computer. Use before risky changes.</p>
+        ${shot('Backup', 'Sidebar button “Backup running-config” → browser downloads hostname-running-config.txt')}
+      `);
+
+      html += sec('sshsetup', '13. Enable SSH (console only)', 'ssh_setup', `
+        <p>Only available when connected over the serial console. Configures domain name, local user, RSA keys, and SSH-only VTY lines so you can manage the switch over the network afterwards.</p>
+        <ol>
+          <li>Connect via console cable</li>
+          <li>Fill domain, username, password, optional modulus</li>
+          <li>Preview the exact commands → Apply</li>
+        </ol>
+        ${shot('SSH Setup', 'Domain · user · password · Preview · Apply · show ip ssh output')}
+      `);
+
+      html += sec('reboot', '14. Reboot Switch', 'reboot', `
+        <p>Two-step safety: request a one-time token, then type the switch’s real hostname to confirm. Optional save-first and delayed reload.</p>
+        ${shot('Reboot', 'Request token → type hostname → confirm · optional “save first” and delay')}
+      `);
+
+      html += sec('recovery', '15. Bootloader & Recovery', 'bootloader', `
+        <p>Console-only tools for the <code>switch:</code> prompt: read boot variables, list images, boot an image, and password recovery (rename config, boot blank, restore).</p>
+        ${shot('Bootloader', 'Detect mode · boot vars · image list · Boot / Recover buttons · confirmation box')}
+      `);
+
+      html += sec('users', '16. Users & Permissions', 'users', `
+        <p>Administrators create users and tick exactly which actions each may perform.</p>
+        <table class="text-xs w-full mt-2" style="border-collapse:collapse">
+          <tr style="border-bottom:1px solid var(--line)"><th class="text-left py-1">Permission</th><th class="text-left">Allows</th></tr>
+          <tr style="border-bottom:1px solid var(--line)"><td class="py-1"><code>view</code></td><td>Port map, topology, show commands, route table, templates</td></tr>
+          <tr style="border-bottom:1px solid var(--line)"><td class="py-1"><code>diagnostics</code></td><td>Ping, monitor, IP scanner, traceroute</td></tr>
+          <tr style="border-bottom:1px solid var(--line)"><td class="py-1"><code>config</code></td><td>Config push, VLANs, interfaces, routing changes, restore</td></tr>
+          <tr style="border-bottom:1px solid var(--line)"><td class="py-1"><code>backup</code></td><td>Download running-config</td></tr>
+          <tr style="border-bottom:1px solid var(--line)"><td class="py-1"><code>ssh_setup</code></td><td>Enable SSH via console</td></tr>
+          <tr style="border-bottom:1px solid var(--line)"><td class="py-1"><code>reboot</code></td><td>Reboot switch (two-step)</td></tr>
+          <tr><td class="py-1"><code>bootloader</code></td><td>Bootloader tools & password recovery</td></tr>
+        </table>
+        <p class="mt-2">Admins have every permission plus user management. Disabled users cannot sign in.</p>
+        ${shot('Users & Permissions', 'User table · Add/Edit form with role and permission checkboxes')}
+      `);
+
+      html += sec('themes', '17. Appearance / Themes', 'users', `
+        <p>Administrators can switch the entire dashboard look among 17 frontend templates (Ocean, Midnight, Forest, Sunset, Slate, Rose, Arctic, Ember, Violet, Graphite, Teal, Indigo, Sand, Cyber, Nord, Dracula, Light).</p>
+        <ul>
+          <li>Open <strong>Admin → Appearance / Themes</strong></li>
+          <li>Click a theme card — colours update instantly</li>
+          <li>Choice is stored in this browser (localStorage)</li>
+          <li>Non-admin users keep whatever theme was last set on that browser; only admins can change it</li>
+        </ul>
+        ${shot('Themes', 'Grid of colour swatches · click to apply · active card highlighted')}
+      `);
+
+      html += sec('tips', '18. Tips & troubleshooting', 'any', `
+        <ul>
+          <li>Session expires after 12 hours of inactivity — you will be redirected to login.</li>
+          <li>Classic IOS may need older SSH algorithms; the server enables them automatically.</li>
+          <li>If serial ports do not appear, type the device path manually (Device Manager → Ports on Windows).</li>
+          <li>Monitor stats and host list are per-browser. Clearing site data resets them.</li>
+          <li>Always take a backup before large config pushes or recovery operations.</li>
+        </ul>
+      `);
+
+      el.innerHTML = html || '<p class="text-slate-400">No sections available for your permissions.</p>';
+    }
+
 
     // ---------- Auth, permissions, users ----------
     let ME = null, USERS = [], CATALOG = {};
@@ -1528,6 +1922,8 @@
       document.querySelectorAll('[data-perm]').forEach(el => el.classList.toggle('perm-hidden', !p.has(el.dataset.perm)));
       [...document.querySelectorAll('.navgroup')].reverse().forEach(g => g.classList.toggle('perm-hidden', !g.querySelector('.navitem:not(.perm-hidden)')));
       if (p.has('users')) loadUsers();
+      initThemes(ME.role === 'admin' || p.has('users'));
+      renderManual(ME);
     }
     async function logout() { await fetch('/api/auth/logout', { method: 'POST' }); location.href = '/login'; }
     async function loadUsers() {
