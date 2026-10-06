@@ -1,0 +1,278 @@
+--- u/Ali-Hamza-Cisco-Networking-Dashboard-v3/cisco-config-dashboard/templates/index.html	2026-10-05 12:48:47.000000000 +0000
++++ /tmp/new_index.html	2026-10-06 05:45:01.764558840 +0000
+@@ -1357,7 +1357,7 @@
+ 
+     // ---------- Switch Monitor (with uptime / downtime / total downtime) ----------
+     const MONITOR_KEY = 'cisco_dash_monitor_hosts';
+-    const MONITOR_STATS_KEY = 'cisco_dash_monitor_stats';
++    const MONITOR_STATS_KEY = 'cisco_dash_monitor_stats_v2';
+     let monitorRunning = false;
+     let monitorTimer = null;
+     let monitorBusy = false;
+@@ -1399,24 +1399,25 @@
+     function currentStretch(st) {
+       return Date.now() - (st.since || Date.now());
+     }
++    function monitorIntervalMs() { const el = document.getElementById('monitor-interval'); return (parseInt(el && el.value) || 10) * 1000; }
++    // Each check credits ONLY the time since the previous check to the state that was in effect.
++    // If checks were paused (tab closed, PC asleep) that gap is not counted as up or down time.
+     function updateStatOnPing(ip, isUp) {
+-      const st = ensureStat(ip);
+-      const now = Date.now();
++      const st = ensureStat(ip), now = Date.now();
++      const gapLimit = Math.max(monitorIntervalMs() * 3, 30000);
++      const continuous = st.lastCheck != null && (now - st.lastCheck) <= gapLimit && (st.status === 'up' || st.status === 'down');
+       st.checks = (st.checks || 0) + 1;
+       if (!isUp) st.fails = (st.fails || 0) + 1;
+-      const prev = st.status;
+-      if (prev === 'up' || prev === 'down') {
+-        const elapsed = now - st.since;
+-        if (prev === 'up') st.totalUpMs = (st.totalUpMs || 0) + elapsed;
+-        else st.totalDownMs = (st.totalDownMs || 0) + elapsed;
+-      }
+-      if (prev !== (isUp ? 'up' : 'down')) {
+-        st.status = isUp ? 'up' : 'down';
+-        st.since = now;
+-        st.lastChange = now;
+-      } else {
+-        st.status = isUp ? 'up' : 'down';
++      if (continuous) {
++        const dt = now - st.lastCheck;
++        if (st.status === 'up') st.totalUpMs = (st.totalUpMs || 0) + dt; else st.totalDownMs = (st.totalDownMs || 0) + dt;
+       }
++      const next = isUp ? 'up' : 'down';
++      if (st.status !== next) {
++        if (next === 'down') st.outages = (st.outages || 0) + 1;
++        st.status = next; st.since = now; st.lastChange = now;
++      } else if (!continuous) st.since = now;   // streak restarts after an unmonitored gap
++      st.lastCheck = now;
+       saveMonitorStats();
+     }
+ 
+@@ -1439,33 +1440,14 @@
+         const color = status === 'up' ? 'text-emerald-400' : (status === 'down' ? 'text-red-400' : 'text-slate-400');
+         const dot = status === 'up' ? 'bg-emerald-400' : (status === 'down' ? 'bg-red-500 animate-pulse' : 'bg-slate-500');
+         const rtt = s.rtt != null ? s.rtt + ' ms' : '—';
+-        // live stretch
+-        let curUp = '—', curDown = '—';
+-        if (status === 'up') {
+-          curUp = formatDuration(currentStretch(st));
+-          totalUpAll += (st.totalUpMs || 0) + currentStretch(st);
+-          totalDownAll += (st.totalDownMs || 0);
+-        } else if (status === 'down') {
+-          curDown = formatDuration(currentStretch(st));
+-          totalDownAll += (st.totalDownMs || 0) + currentStretch(st);
+-          totalUpAll += (st.totalUpMs || 0);
+-        } else {
+-          totalUpAll += (st.totalUpMs || 0);
+-          totalDownAll += (st.totalDownMs || 0);
+-        }
+-        const totalDown = formatDuration(
+-          (st.totalDownMs || 0) + (status === 'down' ? currentStretch(st) : 0)
+-        );
+-        const totalUp = formatDuration(
+-          (st.totalUpMs || 0) + (status === 'up' ? currentStretch(st) : 0)
+-        );
+-        const avail = (() => {
+-          const u = (st.totalUpMs || 0) + (status === 'up' ? currentStretch(st) : 0);
+-          const d = (st.totalDownMs || 0) + (status === 'down' ? currentStretch(st) : 0);
+-          const t = u + d;
+-          if (t < 1000) return '—';
+-          return ((u / t) * 100).toFixed(1) + '%';
+-        })();
++        // Totals are kept current by updateStatOnPing(); only the live "current streak" is computed here.
++        const totalUpMs = st.totalUpMs || 0, totalDownMs = st.totalDownMs || 0;
++        totalUpAll += totalUpMs; totalDownAll += totalDownMs;
++        const curUp = status === 'up' ? formatDuration(currentStretch(st)) : '—';
++        const curDown = status === 'down' ? formatDuration(currentStretch(st)) : '—';
++        const totalDown = formatDuration(totalDownMs), totalUp = formatDuration(totalUpMs);
++        const avail = (totalUpMs + totalDownMs) < 1000 ? '—' : ((totalUpMs / (totalUpMs + totalDownMs)) * 100).toFixed(2) + '%';
++        const outages = st.outages || 0;
+         return `<div class="bg-slate-800/80 rounded-lg px-3 py-2.5 border border-slate-700">
+           <div class="flex items-center justify-between gap-2">
+             <div class="flex items-center gap-2 min-w-0">
+@@ -1486,6 +1468,7 @@
+             <span class="mon-stat" title="Cumulative time spent DOWN since stats began"><span class="lbl">Total down</span> <span class="val text-amber-400">${totalDown}</span></span>
+             <span class="mon-stat" title="Cumulative time spent UP since stats began"><span class="lbl">Total up</span> <span class="val">${totalUp}</span></span>
+             <span class="mon-stat" title="Availability = total up / (total up + total down)"><span class="lbl">Avail</span> <span class="val">${avail}</span></span>
++            <span class="mon-stat" title="How many separate times the device went down"><span class="lbl">Outages</span> <span class="val">${outages}</span></span>
+           </div>
+         </div>`;
+       }).join('');
+@@ -1545,23 +1528,16 @@
+     let PING_TIMEOUT_MS = 12000;
+ 
+     async function pingHost(ip) {
+-      const controller = new AbortController();
+-      const t = setTimeout(() => controller.abort(), PING_TIMEOUT_MS);
++      const controller = new AbortController(), t = setTimeout(() => controller.abort(), PING_TIMEOUT_MS);
+       try {
+-        const res = await fetch('/api/ping', {
+-          method: 'POST',
+-          headers: { 'Content-Type': 'application/json' },
+-          body: JSON.stringify({ target: ip, count: 1 }),
+-          signal: controller.signal
+-        });
++        const res = await fetch('/api/ping', { method: 'POST', headers: { 'Content-Type': 'application/json' },
++          body: JSON.stringify({ target: ip, count: 1 }), signal: controller.signal });
++        if (!res.ok) return { ok: false, serverError: true, rtt_ms: null };
+         const data = await res.json();
+-        clearTimeout(t);
+-        if (data.success && data.alive) return { ok: true, rtt_ms: data.rtt_ms ?? data.avg_ms ?? null };
+-        return { ok: false, rtt_ms: null };
++        return data.alive ? { ok: true, rtt_ms: data.rtt_ms ?? data.avg_ms ?? null } : { ok: false, rtt_ms: null };
+       } catch (e) {
+-        clearTimeout(t);
+-        return { ok: false, rtt_ms: null };
+-      }
++        return { ok: false, serverError: true, rtt_ms: null };   // dashboard server restarted/slow: says nothing about the switch
++      } finally { clearTimeout(t); }
+     }
+ 
+     function updateMonitorBadge() {
+@@ -1584,6 +1560,7 @@
+ 
+     function notifyDown(name, ip) {
+       if (!document.getElementById('monitor-alerts').checked) return;
++      setOutput(`ALERT: ${name || ip} (${ip}) is DOWN`, true);   // always visible, even if browser notifications are blocked
+       try {
+         if (Notification.permission === 'granted') {
+           new Notification('Switch down', { body: (name || ip) + ' (' + ip + ') is not responding' });
+@@ -1594,20 +1571,132 @@
+       try { if (navigator.vibrate) navigator.vibrate([200, 100, 200]); } catch (e) {}
+     }
+ 
++    // ---------- restored: IP scanner + SSH setup (these were missing, so their buttons did nothing) ----------
++    async function runIpScan() {
++      const subnet = document.getElementById('scan-subnet').value.trim();
++      if (!subnet) { alert('Enter subnet e.g. 192.168.4.0/24 or 192.168.4.1-50'); return; }
++      const status = document.getElementById('scan-status');
++      const results = document.getElementById('scan-results');
++      status.textContent = 'Scanning ' + subnet + ' (please wait)...';
++      results.innerHTML = '';
++      setOutput('IP scan started: ' + subnet);
++      try {
++        const res = await fetch('/api/scan', {
++          method: 'POST',
++          headers: { 'Content-Type': 'application/json' },
++          body: JSON.stringify({ subnet, timeout: 1.0 })
++        });
++        const data = await res.json();
++        if (!data.success) {
++          status.textContent = data.error || 'Scan failed';
++          setOutput(data.error || 'Scan failed', true);
++          return;
++        }
++        status.innerHTML = `Scanned <b>${data.scanned}</b> · Alive <span class="text-emerald-400">${data.alive_count}</span> · No reply ${data.dead_count}` +
++          (data.truncated ? ` · <span class="text-amber-400">⚠ range has ${data.total_hosts.toLocaleString()} hosts – only the first ${data.max_hosts} were scanned. Use a /24 or an explicit range.</span>` : '');
++        if (!data.alive.length) {
++          results.innerHTML = '<p class="text-slate-500">No hosts responded.</p>';
++        } else {
++          results.innerHTML = `<p class="text-[10px] text-slate-500 mb-2">Device type is a guess from TTL/hostname (not 100% accurate).</p>
++            <table class="w-full text-left"><thead><tr class="text-slate-400 border-b border-slate-700">
++            <th class="py-1">IP</th><th>Type</th><th>TTL</th><th>RTT</th><th></th></tr></thead><tbody>` +
++            data.alive.map(a => {
++              const label = a.device_label || 'Unknown';
++              const cls = a.device_class || '';
++              const color = cls.includes('pc') ? 'text-sky-300' : (cls.includes('mobile') ? 'text-amber-300' : (cls.includes('network') ? 'text-violet-300' : 'text-slate-300'));
++              return `<tr class="border-b border-slate-800">
++              <td class="py-1 text-emerald-300">${a.target}${a.hostname ? '<div class="text-[10px] text-slate-500">'+a.hostname+'</div>' : ''}</td>
++              <td class="${color}">${label}</td>
++              <td>${a.ttl != null ? a.ttl : '—'}</td>
++              <td>${a.rtt_ms != null ? a.rtt_ms + ' ms' : '—'}</td>
++              <td><button onclick="addScanToMonitor('${a.target}')" class="text-[10px] bg-slate-700 hover:bg-slate-600 px-2 py-0.5 rounded">+ Monitor</button>
++              <button onclick="useMonitorHost('${a.target}')" class="text-[10px] bg-slate-700 hover:bg-slate-600 px-2 py-0.5 rounded ml-1">Use</button></td>
++            </tr>`;
++            }).join('') + '</tbody></table>';
++        }
++        setOutput(`Scan done: ${data.alive_count} alive / ${data.scanned} scanned`);
++      } catch (e) {
++        status.textContent = e.message;
++        setOutput('Scan error: ' + e.message, true);
++      }
++    }
++
++    function addScanToMonitor(ip) {
++      const list = loadMonitorHosts();
++      if (list.some(h => h.ip === ip)) { setOutput(ip + ' already in monitor'); return; }
++      list.push({ ip, name: ip });
++      saveMonitorHosts(list);
++      renderMonitorList();
++      setOutput('Added ' + ip + ' to monitor list');
++    }
++
++    function sshSetupBody() {
++      const c = getCreds();
++      if (c.connection_type !== 'console') { alert('Switch Connection type to Console first.'); return null; }
++      if (!c.serial_port) { alert('Enter the serial port, e.g. COM3'); return null; }
++      const v = id => document.getElementById(id).value.trim();
++      return {
++        ...c,
++        hostname: v('ssh-hostname') || null,
++        domain: v('ssh-domain'),
++        ssh_user: v('ssh-user'),
++        ssh_password: document.getElementById('ssh-pass').value,
++        enable_secret: document.getElementById('ssh-enable').value || null,
++        key_bits: parseInt(document.getElementById('ssh-bits').value),
++        mgmt_interface: v('ssh-mgmt-if') || null,
++        mgmt_ip: v('ssh-mgmt-ip') || null,
++        mgmt_mask: v('ssh-mgmt-mask') || null,
++        gateway: v('ssh-gw') || null,
++        save: document.getElementById('ssh-save').checked
++      };
++    }
++
++    function showSshPreview(cmds) {
++      const box = document.getElementById('ssh-preview');
++      box.textContent = cmds.join('\n');
++      box.classList.remove('hidden');
++    }
++
++    async function previewSshSetup() {
++      const body = sshSetupBody();
++      if (!body) return;
++      try {
++        const res = await fetch('/api/ssh-setup/preview', { method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify(body) });
++        const data = await res.json();
++        if (!data.success) { setOutput(data.error, true); return; }
++        showSshPreview(data.commands);
++        setOutput('Preview only – nothing was sent to the switch.');
++      } catch (e) { setOutput('Error: ' + e.message, true); }
++    }
++
++    async function applySshSetup() {
++      const body = sshSetupBody();
++      if (!body) return;
++      if (!confirm(`Enable SSH on the switch at ${body.serial_port}?\nThis creates RSA keys and changes the VTY lines to SSH-only.`)) return;
++      setOutput('Configuring SSH over console… RSA key generation can take up to a minute.');
++      try {
++        const res = await fetch('/api/ssh-setup', { method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify(body) });
++        const data = await res.json();
++        if (data.commands) showSshPreview(data.commands);
++        if (!data.success) { setOutput(data.error, true); return; }
++        setOutput(`${data.message}\n${data.saved ? 'Saved to startup-config.' : 'Not saved to startup-config.'}\n\n--- show ip ssh ---\n${data.ssh_status}`);
++      } catch (e) { setOutput('Error: ' + e.message, true); }
++    }
++
+     async function monitorTick() {
+       if (monitorBusy) return;
+       monitorBusy = true;
+       try {
+         const list = loadMonitorHosts();
+-        if (!list.length) return;
+-        if (!monitorRunning) return;
++        if (!list.length || !monitorRunning) return;
+         await Promise.all(list.map(async h => {
+           const r = await pingHost(h.ip);
+-          const now = r.ok;
+-          const prev = (monitorStatus[h.ip] || {}).status;
++          if (r.serverError) return;   // no verdict: do not count it as downtime
++          const now = r.ok, prev = (monitorStatus[h.ip] || {}).status;
+           monitorStatus[h.ip] = { status: now ? 'up' : 'down', rtt: r.rtt_ms };
+           updateStatOnPing(h.ip, now);
+-          if (prev === 'up' && !now) notifyDown(h.name, h.ip);
++          if (!now && prev !== 'down') notifyDown(h.name, h.ip);                         // includes a device already down at Start
++          if (now && prev === 'down') setOutput(`${h.name || h.ip} (${h.ip}) is back UP`);
+         }));
+         if (!monitorRunning) return;
+         renderMonitorList();

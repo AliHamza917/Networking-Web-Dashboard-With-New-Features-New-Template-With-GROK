@@ -1211,7 +1211,8 @@ def _ping_host(target: str, count: int = 2, timeout_sec: float = 2.0, resolve_na
             cmd = ["ping", "-c", str(max(1, min(count, 4))), "-W", str(max(1, int(timeout_sec))), target]
 
         t0 = time.time()
-        proc = subprocess.run(cmd, capture_output=True, text=True, timeout=timeout_sec * count + 5)
+        proc = subprocess.run(cmd, capture_output=True, text=True, errors="replace", stdin=subprocess.DEVNULL,
+                              creationflags=getattr(subprocess, "CREATE_NO_WINDOW", 0), timeout=timeout_sec * count + 5)
         elapsed = (time.time() - t0) * 1000
         out = (proc.stdout or "") + (proc.stderr or "")
         # Windows returns exit code 0 even for "Destination host unreachable"

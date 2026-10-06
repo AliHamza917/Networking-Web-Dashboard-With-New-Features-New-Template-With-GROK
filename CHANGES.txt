@@ -1,0 +1,21 @@
+FIXES for Ali-Hamza-Cisco-Networking-Dashboard
+==============================================
+Copy the "cisco-config-dashboard" folder from this zip over yours (it replaces 2 files):
+    cisco-config-dashboard/templates/index.html
+    cisco-config-dashboard/app/main.py
+Your data/ folder (users, secret key) is NOT touched. Then press Ctrl+F5 in the browser.
+
+index.html
+  * RESTORED the IP Scanner: the Scan button called runIpScan(), which no longer existed.
+    Also restored addScanToMonitor() (add scan results to the monitor).
+  * RESTORED SSH Setup: "Preview commands" and "Apply to switch" called missing functions.
+  * FIXED uptime / downtime / total downtime arithmetic (it counted the same time over and over:
+    a device up ~70 s and down ~30 s showed Total up 280 s and Avail 84.8 %).
+  * Time while monitoring was paused (tab closed, PC asleep) is no longer counted as up or down time.
+  * Added an Outages counter per device.
+  * A dashboard-server hiccup/restart is no longer counted as the switch being down.
+  * A device that is already down when you press Start now raises an alert; recovery is announced.
+  * Down alerts are shown in the page as well as the browser pop-up.
+  * Old stats were stored under a new key (…_v2) so the wrong numbers are discarded.
+main.py
+  * Ping subprocess hardened for Windows (no console flash / invalid handle, tolerant of code pages).
