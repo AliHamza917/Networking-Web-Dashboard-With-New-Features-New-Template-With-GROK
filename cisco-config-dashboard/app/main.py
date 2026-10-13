@@ -1587,6 +1587,8 @@ class UserUpsert(BaseModel):
 
 @app.get("/login", response_class=HTMLResponse)
 async def login_page(request: Request):
+    if auth.user_from_token(request.cookies.get("session")):
+        return RedirectResponse("/", status_code=302)   # already signed in: do not show the login form again
     try:
         return templates.TemplateResponse(request, "login.html")
     except TypeError:

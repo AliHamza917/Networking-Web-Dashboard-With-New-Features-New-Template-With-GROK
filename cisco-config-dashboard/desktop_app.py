@@ -16,6 +16,7 @@ if os.path.isdir(user_site):
     sys.path.insert(0, user_site)
 
 from app.main import app
+from app.desktop_api import DesktopApi
 import uvicorn
 import webview
 
@@ -70,6 +71,7 @@ def main():
         min_size=(900, 600),
         background_color="#0f172a",
         text_select=True,
+        js_api=DesktopApi(),   # lets the page open a native Save-as window (backup download)
     )
     webview.start()
 

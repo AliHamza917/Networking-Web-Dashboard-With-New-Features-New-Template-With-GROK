@@ -444,16 +444,16 @@
         <div id="trace-hop-map" class="flex flex-wrap items-stretch gap-0 min-h-[90px] p-3 rounded-lg bg-slate-950 border border-slate-700 overflow-x-auto"></div>
       </div>
 
-      <!-- Monitor Panel – continuous multi-switch ping + uptime/downtime -->
+      <!-- Monitor Panel – continuous multi-switch ping + downtime history -->
       <div id="panel-monitor" class="card rounded-xl p-5 hidden">
         <h2 class="text-lg font-semibold mb-1">Switch Monitor</h2>
-        <p class="text-xs text-slate-400 mb-4">Continuous ping · saved IPs · live uptime / downtime / total downtime · alerts when a switch goes down</p>
+        <p class="text-xs text-slate-400 mb-4">Continuous ping · saved IPs · shows how long a device was down once it is back up · alerts when a switch goes down</p>
         <div class="flex flex-wrap gap-2 mb-3">
           <input id="monitor-ip" type="text" placeholder="192.168.4.7" class="input rounded-lg px-3 py-2 text-sm flex-1 min-w-[140px]" />
           <input id="monitor-name" type="text" placeholder="Name (optional)" class="input rounded-lg px-3 py-2 text-sm w-40" />
           <button onclick="addMonitorHost()" class="btn-primary px-4 py-2 rounded-lg text-sm text-white">Add</button>
           <button onclick="toggleMonitor()" id="btn-monitor-toggle" class="bg-emerald-700 hover:bg-emerald-600 px-4 py-2 rounded-lg text-sm text-white">Start Monitor</button>
-          <button onclick="resetMonitorStats()" class="bg-slate-700 hover:bg-slate-600 px-3 py-2 rounded-lg text-sm text-slate-200" title="Reset all uptime/downtime counters">Reset stats</button>
+          <button onclick="resetMonitorStats()" class="bg-slate-700 hover:bg-slate-600 px-3 py-2 rounded-lg text-sm text-slate-200" title="Clear the recorded downtime history">Reset stats</button>
         </div>
         <div class="flex flex-wrap gap-3 text-xs text-slate-400 mb-3">
           <label class="flex items-center gap-1">Interval
@@ -470,7 +470,7 @@
         </div>
         <div id="monitor-summary" class="flex flex-wrap gap-2 mb-3 text-xs"></div>
         <div id="monitor-list" class="space-y-2"></div>
-        <p class="text-xs text-slate-500 mt-3">IPs and uptime/downtime stats are stored in this browser (localStorage). Stats continue across page reloads while monitoring is active.</p>
+        <p class="text-xs text-slate-500 mt-3">IPs and the downtime history are stored in this browser (localStorage) and survive page reloads.</p>
       </div>
 
       <!-- IP Scanner Panel -->
@@ -795,6 +795,50 @@
     window.fetch = async (...a) => { const r = await _fetch(...a); if (r.status === 401 && !String(a[0]).includes('/api/auth/login')) location.href = '/login'; return r; };
     const esc = s => String(s ?? '').replace(/[&<>"']/g, c => ({ '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;', "'": '&#39;' }[c]));
 
+    // ---------- Only one tab may use the dashboard at a time ----------
+    // Uses the Web Locks API (released the instant the tab closes or crashes); falls back to a
+    // localStorage heartbeat where Web Locks is unavailable (plain http on a non-localhost address).
+    (function tabGuard() {
+      const NAME = 'cisco_dash_active_tab', ME = Math.random().toString(36).slice(2), HB = 'cisco_dash_tab_hb';
+      const canLock = !!(navigator.locks && navigator.locks.request);
+      let overlay = null, retry = null;
+      const hbRead = () => { try { return JSON.parse(localStorage.getItem(HB) || 'null'); } catch (e) { return null; } };
+      const hbOther = () => { const l = hbRead(); return l && l.id !== ME && Date.now() - l.ts < 6000; };
+      const hbClaim = () => { try { localStorage.setItem(HB, JSON.stringify({ id: ME, ts: Date.now() })); } catch (e) {} };
+      function acquire(steal) {
+        if (!canLock) { if (steal || !hbOther()) { hbClaim(); return Promise.resolve(true); } return Promise.resolve(false); }
+        return new Promise(resolve => {
+          navigator.locks.request(NAME, { ifAvailable: !steal, steal: !!steal }, lock => {
+            if (!lock) { resolve(false); return; }
+            resolve(true);
+            return new Promise(() => {});          // hold the lock for as long as this tab lives
+          }).catch(() => show());                   // lock was taken over by another tab
+        });
+      }
+      function show() {
+        window.TAB_BLOCKED = true;
+        if (overlay) return;
+        overlay = document.createElement('div'); overlay.id = 'tab-guard';
+        overlay.style.cssText = 'position:fixed;inset:0;z-index:9999;display:grid;place-items:center;padding:1.5rem;background:color-mix(in srgb, var(--bg,#0a1519) 94%, transparent);backdrop-filter:blur(6px)';
+        overlay.innerHTML = `<div style="max-width:430px;text-align:center;padding:2rem;border:1px solid var(--line,#23404a);border-radius:var(--r,14px);background:var(--panel,#12252b);color:var(--text,#e6f0f2)">
+          <div style="font-size:2rem">⧉</div><h2 style="font-size:1.2rem;font-weight:650;margin:.4rem 0">Dashboard is already open in another tab</h2>
+          <p style="font-size:.88rem;color:var(--muted,#8ba3ab);line-height:1.5;margin:0 0 1.2rem">To keep your session safe and avoid duplicate monitoring, only one tab can use the dashboard at a time.</p>
+          <button id="tab-guard-use" style="padding:.6rem 1.2rem;border-radius:var(--rs,10px);background:linear-gradient(180deg,var(--cyan,#22c7e6),var(--cyan-d,#0b7f9c));color:var(--on-accent,#fff);font-weight:600;border:0;cursor:pointer">Use this tab instead</button>
+          <button id="tab-guard-close" style="margin-left:.5rem;padding:.6rem 1.2rem;border-radius:var(--rs,10px);background:transparent;color:var(--text,#e6f0f2);border:1px solid var(--line,#23404a);cursor:pointer">Close this tab</button></div>`;
+        document.body.appendChild(overlay);
+        overlay.querySelector('#tab-guard-use').onclick = () => acquire(true).then(hide);
+        overlay.querySelector('#tab-guard-close').onclick = () => { window.close(); overlay.querySelector('p').textContent = 'You can close this tab now.'; };
+        retry = setInterval(() => acquire(false).then(ok => { if (ok) hide(); }), 3000);   // the other tab was closed
+      }
+      function hide() { window.TAB_BLOCKED = false; clearInterval(retry); if (overlay) { overlay.remove(); overlay = null; } }
+      acquire(false).then(ok => { if (!ok) show(); });
+      if (!canLock) {                                // heartbeat fallback
+        setInterval(() => { if (overlay) return; if (hbOther()) show(); else hbClaim(); }, 2000);
+        window.addEventListener('storage', e => { if (e.key === HB && !overlay && hbOther()) show(); });
+        window.addEventListener('pagehide', () => { const l = hbRead(); if (l && l.id === ME) localStorage.removeItem(HB); });
+      }
+    })();
+
     // ---------- Helpers ----------
     function getCreds() {
       const ctype = document.getElementById('connection-type').value;
@@ -1006,13 +1050,22 @@
           setOutput(data.error || 'Backup failed', true);
           return;
         }
+        const cd = res.headers.get('content-disposition') || '';
+        const fm = cd.match(/filename="?([^";]+)"?/i);
+        const fname = fm ? fm[1] : 'running-config.cfg';
+        // Desktop app (pywebview) cannot do browser-style downloads: use its native "Save as" window.
+        if (window.pywebview && window.pywebview.api && window.pywebview.api.save_file) {
+          const r = await window.pywebview.api.save_file(fname, await res.text());
+          if (r && r.ok) setOutput('Backup saved to ' + r.path);
+          else if (r && r.cancelled) setOutput('Save cancelled. The backup was not saved.');
+          else setOutput('Could not save the backup: ' + ((r && r.error) || 'unknown error'), true);
+          return;
+        }
         const blob = await res.blob();
         const url = window.URL.createObjectURL(blob);
         const a = document.createElement('a');
         a.href = url;
-        const cd = res.headers.get('content-disposition') || '';
-        const fm = cd.match(/filename="?([^";]+)"?/i);
-        a.download = fm ? fm[1] : 'running-config.cfg';
+        a.download = fname;
         a.click();
         setTimeout(() => window.URL.revokeObjectURL(url), 1000);
         setOutput('Backup downloaded successfully.');
@@ -1355,14 +1408,14 @@
     // Load templates
     // ---------- Switch Monitor (saved IPs + continuous ping + alerts) ----------
 
-    // ---------- Switch Monitor (with uptime / downtime / total downtime) ----------
+    // ---------- Switch Monitor (downtime history) ----------
     const MONITOR_KEY = 'cisco_dash_monitor_hosts';
-    const MONITOR_STATS_KEY = 'cisco_dash_monitor_stats_v2';
+    const MONITOR_STATS_KEY = 'cisco_dash_monitor_stats_v3';
     let monitorRunning = false;
     let monitorTimer = null;
     let monitorBusy = false;
     let monitorStatus = {};   // ip -> { status, rtt }
-    // stats[ip] = { status, since, totalUpMs, totalDownMs, lastChange, checks, fails }
+    // stats[ip] = { status, since, lastCheck, downStart, lastOutage:{start,end,durMs}, log:[last 5 outages] }
     let monitorStats = {};
 
     function loadMonitorHosts() {
@@ -1380,9 +1433,7 @@
       localStorage.setItem(MONITOR_STATS_KEY, JSON.stringify(monitorStats));
     }
     function ensureStat(ip) {
-      if (!monitorStats[ip]) {
-        monitorStats[ip] = { status: 'unknown', since: Date.now(), totalUpMs: 0, totalDownMs: 0, lastChange: Date.now(), checks: 0, fails: 0 };
-      }
+      if (!monitorStats[ip]) monitorStats[ip] = { status: 'unknown', since: Date.now(), lastCheck: null, downStart: null, lastOutage: null, log: [] };
       return monitorStats[ip];
     }
     function formatDuration(ms) {
@@ -1402,21 +1453,22 @@
     function monitorIntervalMs() { const el = document.getElementById('monitor-interval'); return (parseInt(el && el.value) || 10) * 1000; }
     // Each check credits ONLY the time since the previous check to the state that was in effect.
     // If checks were paused (tab closed, PC asleep) that gap is not counted as up or down time.
+    // Records ONE thing: how long a device was down, once it is back up.
+    // Time while monitoring was paused (tab closed, PC asleep) is never counted as downtime.
     function updateStatOnPing(ip, isUp) {
       const st = ensureStat(ip), now = Date.now();
-      const gapLimit = Math.max(monitorIntervalMs() * 3, 30000);
-      const continuous = st.lastCheck != null && (now - st.lastCheck) <= gapLimit && (st.status === 'up' || st.status === 'down');
-      st.checks = (st.checks || 0) + 1;
-      if (!isUp) st.fails = (st.fails || 0) + 1;
-      if (continuous) {
-        const dt = now - st.lastCheck;
-        if (st.status === 'up') st.totalUpMs = (st.totalUpMs || 0) + dt; else st.totalDownMs = (st.totalDownMs || 0) + dt;
-      }
+      const continuous = st.lastCheck != null && (now - st.lastCheck) <= Math.max(monitorIntervalMs() * 3, 30000);
       const next = isUp ? 'up' : 'down';
       if (st.status !== next) {
-        if (next === 'down') st.outages = (st.outages || 0) + 1;
-        st.status = next; st.since = now; st.lastChange = now;
-      } else if (!continuous) st.since = now;   // streak restarts after an unmonitored gap
+        if (next === 'down') st.downStart = now;
+        else if (st.status === 'down' && st.downStart != null) {
+          const end = continuous ? now : (st.lastCheck ?? now);
+          st.lastOutage = { start: st.downStart, end, durMs: Math.max(0, end - st.downStart) };
+          st.log = [st.lastOutage, ...(st.log || [])].slice(0, 5);
+          st.downStart = null;
+        }
+        st.status = next; st.since = now;
+      } else if (!continuous && next === 'up') st.since = now;
       st.lastCheck = now;
       saveMonitorStats();
     }
@@ -1431,7 +1483,7 @@
         return;
       }
       let upN = 0, downN = 0, unkN = 0;
-      let totalDownAll = 0, totalUpAll = 0;
+      const when = t => new Date(t).toLocaleString([], { month: 'short', day: 'numeric', hour: '2-digit', minute: '2-digit', second: '2-digit' });
       el.innerHTML = list.map((h, i) => {
         const s = monitorStatus[h.ip] || {};
         const st = ensureStat(h.ip);
@@ -1440,14 +1492,16 @@
         const color = status === 'up' ? 'text-emerald-400' : (status === 'down' ? 'text-red-400' : 'text-slate-400');
         const dot = status === 'up' ? 'bg-emerald-400' : (status === 'down' ? 'bg-red-500 animate-pulse' : 'bg-slate-500');
         const rtt = s.rtt != null ? s.rtt + ' ms' : '—';
-        // Totals are kept current by updateStatOnPing(); only the live "current streak" is computed here.
-        const totalUpMs = st.totalUpMs || 0, totalDownMs = st.totalDownMs || 0;
-        totalUpAll += totalUpMs; totalDownAll += totalDownMs;
-        const curUp = status === 'up' ? formatDuration(currentStretch(st)) : '—';
-        const curDown = status === 'down' ? formatDuration(currentStretch(st)) : '—';
-        const totalDown = formatDuration(totalDownMs), totalUp = formatDuration(totalUpMs);
-        const avail = (totalUpMs + totalDownMs) < 1000 ? '—' : ((totalUpMs / (totalUpMs + totalDownMs)) * 100).toFixed(2) + '%';
-        const outages = st.outages || 0;
+        let downInfo;
+        if (status === 'down' && st.downStart != null) {
+          downInfo = `<span class="mon-stat" title="This device is down right now"><span class="lbl">Down for</span> <span class="val text-red-400">${formatDuration(Date.now() - st.downStart)}</span></span>`;
+        } else if (st.lastOutage) {
+          const o = st.lastOutage, more = (st.log || []).map(x => `${when(x.start)} → ${when(x.end)}  (${formatDuration(x.durMs)})`).join('\n');
+          downInfo = `<span class="mon-stat" title="${esc(more)}"><span class="lbl">Last downtime</span> <span class="val text-amber-400">${formatDuration(o.durMs)}</span></span>
+            <span class="text-[10px] text-slate-500">${esc(when(o.start))} → ${esc(when(o.end))}</span>`;
+        } else {
+          downInfo = '<span class="text-[10px] text-slate-500">No downtime recorded</span>';
+        }
         return `<div class="bg-slate-800/80 rounded-lg px-3 py-2.5 border border-slate-700">
           <div class="flex items-center justify-between gap-2">
             <div class="flex items-center gap-2 min-w-0">
@@ -1462,14 +1516,7 @@
               <button onclick="removeMonitorHost(${i})" class="text-[10px] text-red-400 hover:text-red-300 px-2 py-1">✕</button>
             </div>
           </div>
-          <div class="flex flex-wrap gap-1.5 mt-2">
-            <span class="mon-stat" title="How long the device has been continuously UP"><span class="lbl">Uptime</span> <span class="val text-emerald-400">${curUp}</span></span>
-            <span class="mon-stat" title="How long the device has been continuously DOWN"><span class="lbl">Downtime</span> <span class="val text-red-400">${curDown}</span></span>
-            <span class="mon-stat" title="Cumulative time spent DOWN since stats began"><span class="lbl">Total down</span> <span class="val text-amber-400">${totalDown}</span></span>
-            <span class="mon-stat" title="Cumulative time spent UP since stats began"><span class="lbl">Total up</span> <span class="val">${totalUp}</span></span>
-            <span class="mon-stat" title="Availability = total up / (total up + total down)"><span class="lbl">Avail</span> <span class="val">${avail}</span></span>
-            <span class="mon-stat" title="How many separate times the device went down"><span class="lbl">Outages</span> <span class="val">${outages}</span></span>
-          </div>
+          <div class="flex flex-wrap items-center gap-2 mt-2">${downInfo}</div>
         </div>`;
       }).join('');
       if (summary) {
@@ -1477,10 +1524,7 @@
           <span class="mon-stat"><span class="lbl">Devices</span> <span class="val">${list.length}</span></span>
           <span class="mon-stat"><span class="lbl">Up</span> <span class="val text-emerald-400">${upN}</span></span>
           <span class="mon-stat"><span class="lbl">Down</span> <span class="val text-red-400">${downN}</span></span>
-          <span class="mon-stat"><span class="lbl">Unknown</span> <span class="val">${unkN}</span></span>
-          <span class="mon-stat"><span class="lbl">Σ total down</span> <span class="val text-amber-400">${formatDuration(totalDownAll)}</span></span>
-          <span class="mon-stat"><span class="lbl">Σ total up</span> <span class="val text-emerald-400">${formatDuration(totalUpAll)}</span></span>
-        `;
+          <span class="mon-stat"><span class="lbl">Unknown</span> <span class="val">${unkN}</span></span>`;
       }
     }
 
@@ -1517,7 +1561,7 @@
     }
 
     function resetMonitorStats() {
-      if (!confirm('Reset all uptime / downtime counters for every monitored device?')) return;
+      if (!confirm('Clear the recorded downtime history for every monitored device?')) return;
       monitorStats = {};
       loadMonitorHosts().forEach(h => ensureStat(h.ip));
       saveMonitorStats();
@@ -1684,7 +1728,7 @@
     }
 
     async function monitorTick() {
-      if (monitorBusy) return;
+      if (monitorBusy || window.TAB_BLOCKED) return;   // a blocked (second) tab must not ping or record anything
       monitorBusy = true;
       try {
         const list = loadMonitorHosts();
@@ -1867,8 +1911,8 @@
         ${shot('Track Route', 'Destination field · Run · coloured hop strip + raw output')}
       `);
 
-      html += sec('monitor', '6. Switch Monitor (uptime / downtime)', 'diagnostics', `
-        <p>Continuously pings a list of switch IPs stored in this browser. Tracks live and cumulative availability.</p>
+      html += sec('monitor', '6. Switch Monitor (downtime)', 'diagnostics', `
+        <p>Continuously pings a list of switch IPs stored in this browser and tells you when one goes down and how long it stayed down.</p>
         <h4>Adding devices</h4>
         <ol>
           <li>Type an IP (and optional friendly name) → <strong>Add</strong></li>
@@ -1876,16 +1920,14 @@
           <li>Optionally enable browser alerts on disconnect</li>
           <li>Click <strong>Start Monitor</strong></li>
         </ol>
-        <h4>Metrics shown for every device</h4>
+        <h4>What is shown for every device</h4>
         <ul>
-          <li><strong>Uptime</strong> — how long the device has been continuously UP</li>
-          <li><strong>Downtime</strong> — how long it has been continuously DOWN</li>
-          <li><strong>Total down</strong> — cumulative time spent DOWN since stats started</li>
-          <li><strong>Total up</strong> — cumulative time spent UP</li>
-          <li><strong>Avail</strong> — availability percentage = total up / (total up + total down)</li>
+          <li><strong>Down for</strong> — while the device is DOWN: how long it has been down so far</li>
+          <li><strong>Last downtime</strong> — once it is back UP: how long it was down, with the time it went down and the time it came back. Hover it to see the last 5 outages</li>
+          <li><strong>No downtime recorded</strong> — the device has never gone down while being monitored</li>
         </ul>
-        <p>A summary row shows device counts and the sum of total up / total down across all hosts. Use <strong>Reset stats</strong> to clear counters. Stats and the host list survive page reloads (localStorage).</p>
-        ${shot('Switch Monitor', 'IP + Name inputs · Start/Stop · interval · list of devices with Uptime / Downtime / Total down / Total up / Avail chips · summary bar')}
+        <p>A summary row shows how many devices are up, down or unknown. Downtime is measured to within one check interval. Time while monitoring was not running (tab closed, computer asleep) is never counted as downtime. Use <strong>Reset stats</strong> to clear the history. The host list and history survive page reloads (localStorage).</p>
+        ${shot('Switch Monitor', 'IP + Name inputs · Start/Stop · interval · list of devices with “Down for” / “Last downtime” · summary bar')}
       `);
 
       html += sec('scanner', '7. IP Scanner', 'diagnostics', `
